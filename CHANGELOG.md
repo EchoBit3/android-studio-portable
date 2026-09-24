@@ -1,6 +1,14 @@
 # Changelog
 
-Versión actual: `0.1.0` (ver `VERSION`).
+Versión actual: `0.1.1` (ver `VERSION`).
+
+## 2026-09-24 — v0.1.1 (fix loop de update en instalaciones patch)
+
+- **Fix `installed_version`**: `.studio-version` es ahora la fuente autoritativa de la versión instalada con fallback a `product-info.json`. Un patch release (ej. `2026.1.4.8`) no cambia `dataDirectoryName` y antes `check_update` re-descargaba el IDE en cada caché vencida (loop 24h).
+- **Fix `rollback`**: recalcula la versión desde el payload restaurado de `.prev` sin la redirección prematura que creaba `.studio-version` vacío.
+- **Pruebas**: nueva aserción (suite `blackbox_update` 19→20, total 101→102) que prioriza `.studio-version` sobre `product-info.json`.
+- **CI**: Dependabot bump `actions/checkout` 4→7 (PR #4); ramas `feat/auto-update` y `feat/calidad-y-seguridad` retiradas tras absorción en `main`.
+- Suites vigentes: blackbox_setup 26 · blackbox_launcher 11 · blackbox_uninstall 10 · blackbox_update 20 · whitebox_content 21 · whitebox_security 14 = **102**.
 
 ## 2026-09-24 — v0.1.0 (calidad, seguridad y documentación)
 
