@@ -1,0 +1,22 @@
+# Binarios y datos pesados nunca van al repo
+android-studio/
+sdk/
+avd/
+.gradle/
+.android/
+.config/
+.cache/
+.local/
+AndroidStudioConfig/
+AndroidStudioSystem/
+AndroidStudioPlugins/
+AndroidStudioLogs/
+tmp/
+*.log
+*.tar.gz
+
+# Artefactos de prueba y del sistema
+*.pyc
+__pycache__/
+.DS_Store
+.idea/
