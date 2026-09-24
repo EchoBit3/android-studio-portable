@@ -13,7 +13,18 @@ AndroidStudioPlugins/
 AndroidStudioLogs/
 tmp/
 *.log
+# Binary, secretos y datos pesados nunca van al repo
 *.tar.gz
+*.tgz
+*.pem
+*.key
+*.p12
+*.jks
+.env
+**/.env.*
+stage/
+update-stage/
+android-studio.prev/
 
 # Artefactos de prueba y del sistema
 *.pyc
