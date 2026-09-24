@@ -51,6 +51,17 @@ ln -sfn "$TMP_ROOT/otro/sdk" "$FAKE_HOME/Android/Sdk"
 bash "$uninstall_script" --dest "$FAKE_DEST" --home "$FAKE_HOME" --keep-binaries >/dev/null 2>&1
 assert_true "[ -L '$FAKE_HOME/Android/Sdk' ]" "uninstall.sh no retira symlinks de otros destinos"
 
+# 5. uninstall.sh falla sin --dest y documenta el flag
+bash "$uninstall_script" >"$TMP_ROOT/nodest.log" 2>&1
+assert_eq "$?" "1" "uninstall.sh sin --dest termina con código 1"
+assert_true "grep -q -- '--dest' '$TMP_ROOT/nodest.log'" "uninstall.sh sin --dest imprime la ayuda con --dest"
+
+# 6. uninstall.sh documenta --keep-binaries y --help
+assert_true "bash '$uninstall_script' --help 2>&1 | grep -q -- '--keep-binaries'" \
+    "uninstall.sh documenta --keep-binaries en --help"
+assert_true "bash '$uninstall_script' --help 2>&1 | grep -q -- '--dest'" \
+    "uninstall.sh documenta --dest en --help"
+
 HOME="$SAVED_HOME"
 
 if summarize; then
