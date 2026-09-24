@@ -56,4 +56,6 @@ Andá al README y seguí la sección *Instalar*. En resumen: clonás el repo, co
 
 **¿Y si algo falla al instalar?** Corré `bash tests/run-tests.sh` en el repo: son pruebas aisladas que no tocan tu sistema real. Si pasan verde, el problema es de tu entorno (por ejemplo falta `curl` o no tenés permisos de escritura en el destino).
 
+**¿Se actualiza solo?** El **programa** (Android Studio) sí: al abrir el lanzador, mira la última versión estable de Google cada 24 h y se actualiza solo. Los **scripts del proyecto** no: para tomar cambios nuevos del repo hay que re-correr `./setup.sh --dest ...` (no vuelve a descargar el IDE). Más detalle en la sección *Actualizar y mantener* del README.
+
 Siguiente lectura sugerida para técnicos: `01-diseno.md` (cómo está hecho y por qué).
