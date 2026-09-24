@@ -1,4 +1,4 @@
-# Fallos resueltos
+# ¿Qué se rompió y cómo se arregló?
 
 ## TL;DR
 
@@ -83,3 +83,5 @@ _Registro automático del bot de validación — no editar a mano._
 
 - **05-build-gradle**: resuelto (resuelto 2026-09-24)
 <!-- bot:fin -->
+
+> Over to you: si aparece un fallo nuevo, documentalo con el mismo formato (síntoma → causa → solución → cobertura) y agregá el test que lo reproduzca antes de considerar cerrado.

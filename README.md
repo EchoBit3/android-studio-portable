@@ -6,7 +6,7 @@ Android Studio **autocontenido en un solo directorio**: el IDE, el SDK de Androi
 
 ---
 
-## Para quién es
+## ¿Para quién es?
 
 | Perfil | Qué te aporta |
 |---|---|
@@ -16,7 +16,7 @@ Android Studio **autocontenido en un solo directorio**: el IDE, el SDK de Androi
 
 ---
 
-## Requisitos
+## ¿Qué requisitos necesito?
 
 - Linux (validado en Fedora/KDE) con **bash 5.x**
 - `tar` y `curl` o `wget`
@@ -26,7 +26,7 @@ No necesitás `sudo`, ni Java/Gradle instalados por separado (el IDE trae su pro
 
 ---
 
-## Instalar (rápido)
+## ¿Cómo instalo?
 
 ```bash
 # 1. Cloná el repo
@@ -50,7 +50,7 @@ Ver todas las opciones: `./setup.sh --help`, `./uninstall.sh --help`.
 
 ---
 
-## Cómo funciona
+## ¿Cómo funciona?
 
 ### En una frase (para todos)
 
@@ -124,7 +124,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 
 ---
 
-## Qué hace cada archivo
+## ¿Qué hace cada archivo?
 
 | Archivo | Rol |
 |---|---|
@@ -140,7 +140,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 
 ---
 
-## Verificación y calidad
+## ¿Cómo verifico la calidad?
 
 ```bash
 bash tests/run-tests.sh
@@ -154,15 +154,15 @@ bash tests/run-tests.sh
 
 Estrategia de pruebas en `docs/02-pruebas.md`; registro de fallos y su solución en `docs/04-fallos.md`; checklist QA completo en `docs/05-qa.md`.
 
-## Privacidad
+## ¿Qué sabe de vos el proyecto? (privacidad)
 
 Este proyecto **no recopila datos**: no pide correo, no tiene telemetría, no guarda estadísticas. Todo lo que genera Android Studio queda en tu carpeta portable. Lo único que se escribe fuera es el symlink `$HOME/Android/Sdk` (removible con `uninstall.sh`). Detalle completo en `docs/06-privacidad.md`.
 
-## Estándares y leyes
+## ¿Contra qué estándares se mide?
 
 El proyecto se documenta contra estándares internacionales (ISO/IEC 25010 calidad, ISO/IEC 27001/27002 seguridad, ISO/IEC 12207 ciclo de vida) y la normativa chilena de datos y ciberseguridad vigente. Ver `docs/07-estandares.md`.
 
-## Versionado
+## ¿Cómo se versiona?
 
 El repo usa versionado semántico: la versión actual vive en `VERSION` (SemVer `MAJOR.MINOR.PATCH`) y los cambios por hito en `CHANGELOG.md`. Los commits siguen Conventional Commits (prefijos `feat|fix|docs|test|ci|chore`) y los PRs van `feat/*` → `dev` → `main`.
 
@@ -173,3 +173,7 @@ El repo usa versionado semántico: la versión actual vive en `VERSION` (SemVer 
 ## Licencia
 
 MIT — Port en `LICENSE`.
+
+---
+
+> ¿Sirve para tu caso? Cloná el repo, corré `bash tests/run-tests.sh` y probá `./setup.sh --dest ...`. ¿Encontraste un entorno donde no anda o una mejora? Abrí un issue o aportá la prueba: la base está en `docs/05-qa.md` y el cómo en `docs/04-fallos.md`.

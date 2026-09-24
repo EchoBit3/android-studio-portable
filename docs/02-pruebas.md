@@ -1,4 +1,4 @@
-# Estrategia de pruebas
+# ¿Cómo sabemos que el proyecto funciona?
 
 ## TL;DR
 
@@ -35,3 +35,5 @@ La lógica del template `src/studio-portable.sh.in` se comparó con el lanzador 
 ## Composición de la suite
 
 `tests/run-tests.sh` ejecuta las seis suites en orden y agrega el resultado. El conteo global (101) se mantiene actualizado en `README.md` y `05-qa.md`.
+
+> Over to you: si encontrás un escenario no cubierto (nueva flag, nuevo caso hostil, regresión), escribí la aserción en la suite correspondiente y agregala a la tabla — el costo de probar es más bajo que el costo de romper silenciosamente en producción.

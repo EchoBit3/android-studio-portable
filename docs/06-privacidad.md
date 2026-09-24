@@ -1,4 +1,4 @@
-# Privacidad y transparencia
+# ¿Qué sabe de vos este proyecto?
 
 > Resumen en una línea: este proyecto **no recolecta datos personales**, no tiene telemetría propia, no pide ningún identificador y no se comunica por cuenta propia con ningún servicio.
 
@@ -55,3 +55,5 @@ Con `uninstall.sh`, el symlink `~/Android/Sdk` se retira **solo si apunta a tu c
 ## Declaración de mínimo
 
 Este proyecto apunta a cumplir con los principios de mínimo necesario y transparencia de la ley de protección de datos chilena (Ley 19.628 / Ley 21.719, ver `07-estandares.md`): al no tratar datos personales en ninguna operación, la superficie de riesgo es mínima por diseño. Se documenta esto como política, no como un "no-logs" vacío: la evidencia está en el código fuente (búsqueda de red) y en las suites de seguridad (`05-qa.md` S5).
+
+> Over to you: si encontrás cualquier consulta de red que no esté justificada en este documento, es un bug — abrí un issue en el repo.

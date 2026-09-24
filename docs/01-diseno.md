@@ -1,4 +1,4 @@
-# Diseño — android-studio-portable
+# ¿Cómo hace este repo para que Android Studio sea portable?
 
 ## TL;DR
 
@@ -62,3 +62,14 @@ El lanzador ataca ambos frentes: reescribe el XML **y** crea el symlink. Es la �
 - El emulador necesita KVM; si el AVD se crea desde el IDE usa `ANDROID_AVD_HOME=BASE/avd`.
 - Premium edge: algunos plugins de terceros pueden escribir fuera; el repo documenta las variables que el 99 % respeta.
 - El repositorio sigue ISO/IEC/IEEE 12207 (ciclo de vida) y documenta calidad ISO/IEC 25010, seguridad ISO/IEC 27001/27002 y normativa chilena de datos — ver `07-estandares.md`.
+
+## Trade-offs (decisiones incómodas, asumidas)
+
+| Decisión | Lo que ganás | Lo que pagás |
+|---|---|---|
+| Symlink `$HOME/Android/Sdk` | Compatibilidad total: componentes de Google que solo buscan ahí | Un archivo de 0 bytes fuera del directorio (documentado, reversible) |
+| Sin binarios en el repo | Repo pequeño, reproducible, revisable en diffs | Necesitás red en el primer `setup.sh` (~1.5 GB) |
+| `--no-same-owner` en la extracción | Seguridad: nada escrito como root/otro dueño | Permisos de propietario del tar no se preservan |
+| Update con manifest + sha256 | Integridad verificada antes de activar | Una descarga fallida se reintenta; nunca se rompe la instalación vigente |
+
+> Over to you: ¿cambiarías alguno de estos trade-offs o agregarías otro?

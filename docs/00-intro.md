@@ -1,4 +1,4 @@
-# Introducción — Android Studio Portable
+# ¿Qué es Android Studio Portable y por qué te conviene?
 
 > Para usuarios no técnicos. Si querés ver solo "cómo instalo", andá a la sección *Instalar* del README.
 

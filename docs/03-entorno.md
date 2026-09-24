@@ -1,4 +1,4 @@
-# Entorno de validación
+# ¿Dónde se validó el proyecto?
 
 ## TL;DR
 
@@ -23,3 +23,5 @@ Todo se probó en una sola máquina física: Fedora 44 KDE, i3-1220P (12 hilos),
 - Android Studio Quail 4 Patch 1 (2026.1.4) se ejecutó aquí con el lanzador portable y **no** se validaron builds con el emulador (el SDK sí incluye emulador con KVM disponible).
 - Las suites de prueba (`tests/run-tests.sh`) no tocan esta configuración: crean `HOME` y destinos falsos bajo `/tmp` y un tar.gz mínimo, por lo que corren igual en otra máquina.
 - Requisito mínimo razonable por extrapolación: 8 GiB RAM recomendados por Android Studio, disco con ~6 GB libres (IDE + SDK). No verificado en hardware menor.
+
+> Over to you: ¿lo probaste en otra distro, versión de bash o hardware? Anotá el resultado en este documento y corré `bash tests/run-tests.sh` para validar que la base sigue verde.

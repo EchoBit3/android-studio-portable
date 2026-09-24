@@ -1,4 +1,4 @@
-# Estándares, leyes y versionado
+# ¿Contra qué estándares y leyes se mide el proyecto?
 
 > Resumen en una línea: el proyecto se documenta contra estándares internacionales de calidad, seguridad y ciclo de vida (ISO/IEC y ISO) y contra la normativa chilena de protección de datos vigente; la política de versionado es SemVer con `VERSION` y `CHANGELOG`.
 
@@ -58,3 +58,5 @@ Cada mención a una norma o ley lleva su **referencia completa** (número, edici
 - El número de versión del repo vive en `VERSION` (formato `MAJOR.MINOR.PATCH`, [Semantic Versioning 2.0.0](https://semver.org), acceso 2026-09-24).
 - `CHANGELOG.md` documenta, en orden cronológico, qué cambió en cada hito y el conteo de aserciones verdes alcanzado.
 - Los commits usan [Conventional Commits](https://www.conventionalcommits.org), acceso 2026-09-24: `feat|fix|docs|test|ci|chore`, en español, una pieza por commit, respetando el orden de ramas (`feat/*` → `dev` → `main`).
+
+> Over to you: ¿referenciás otra norma o ley aplicable a este proyecto? Documentala con el mismo formato (nombre + cláusula + versión + URL + fecha) y se agrega a esta página.
