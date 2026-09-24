@@ -1,0 +1,5 @@
+idea.config.path=${idea.home.path}/../AndroidStudioConfig
+idea.system.path=${idea.home.path}/../AndroidStudioSystem
+idea.plugins.path=${idea.home.path}/../AndroidStudioPlugins
+idea.log.path=${idea.home.path}/../AndroidStudioLogs
+idea.cache.path=${idea.home.path}/../.cache/AndroidStudioCache

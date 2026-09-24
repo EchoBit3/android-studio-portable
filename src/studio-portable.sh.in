@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Launcher portable de Android Studio. Generado por setup.sh; BASE se deriva en runtime.
+BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+export ANDROID_SDK_ROOT="$BASE/sdk"
+export ANDROID_HOME="$BASE/sdk"
+export ANDROID_USER_HOME="$BASE/.android"
+export ANDROID_AVD_HOME="$BASE/avd"
+export GRADLE_USER_HOME="$BASE/.gradle"
+
+export XDG_CONFIG_HOME="$BASE/.config"
+export XDG_CACHE_HOME="$BASE/.cache"
+export XDG_DATA_HOME="$BASE/.local/share"
+
+export TMPDIR="$BASE/tmp"
+export TEMP="$BASE/tmp"
+export TMP="$BASE/tmp"
+
+export STUDIO_PROPERTIES="$BASE/studio.properties"
+
+SDK_STATE="$BASE/AndroidStudioConfig/options/AndroidSdkPathStore.xml"
+mkdir -p "$(dirname "$SDK_STATE")"
+cat > "$SDK_STATE" << XML
+<application>
+  <component name="AndroidSdkPathStore">
+    <option name="androidSdkAbsolutePath" value="$BASE/sdk" />
+  </component>
+</application>
+XML
+
+mkdir -p "$HOME/Android"
+ln -sfn "$BASE/sdk" "$HOME/Android/Sdk"
+
+exec "$BASE/android-studio/bin/studio.sh" "$@"
