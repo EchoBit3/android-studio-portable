@@ -1,0 +1,30 @@
+flowchart TD
+    subgraph Setup["setup.sh (una sola vez)"]
+        A[--dest DIR] --> B[Crea estructura autocontenida]
+        B --> C{¿Hay android-studio/ en el destino?}
+        C -- No --> D[Descarga o usa --tar tar.gz oficial]
+        D --> E[Extrae android-studio/]
+        C -- Sí --> E
+        E --> F[Genera studio-portable.sh desde template]
+        F --> G[Genera studio.properties desde template]
+        G --> H[Escribe AndroidSdkPathStore.xml]
+        H --> I[Symlink $HOME/Android/Sdk -&gt; DIR/sdk]
+    end
+
+    subgraph Run["studio-portable.sh (cada arranque)"]
+        J[Deriva BASE en runtime desde BASH_SOURCE] --> K[Exporta ANDROID_HOME/ANDROID_SDK_ROOT]
+        K --> L[Exporta AVD, Gradle, XDG, TMP]
+        L --> M[Reescribe AndroidSdkPathStore.xml con BASE/sdk]
+        M --> N[Refresca symlink Android/Sdk idempotente]
+        N --> O[exec bin/studio.sh]
+    end
+
+    subgraph Data["Todo autocontenido en DIR"]
+        R1[sdk/ emulador avd/]
+        R2[.gradle/ .android/ .config/]
+        R3[AndroidStudioConfig System Plugins Logs]
+        R4[tmp/ y caches XDG]
+    end
+
+    Setup --> Data
+    Run --> Data
