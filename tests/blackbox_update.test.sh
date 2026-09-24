@@ -35,6 +35,16 @@ assert_true "! version_gt '2026.1.4' '2026.1.4'" "iguales no es mayor"
 assert_eq "$(installed_version "$FAKE_BASE")" "2026.1.4" \
     "installed_version deriva la versión desde product-info.json"
 
+# 2b. .studio-version manda sobre product-info.json: un patch (2026.1.4.8)
+# no cambia dataDirectoryName (AndroidStudio2026.1.4) y no debe provocar
+# re-descarga en loop ni versión regresiva.
+PATCH_BASE="$TMP_ROOT/instalacion-patch"
+mkdir -p "$PATCH_BASE/android-studio"
+printf '{"dataDirectoryName":"AndroidStudio2026.1.4"}\n' > "$PATCH_BASE/android-studio/product-info.json"
+printf '2026.1.4.8\n' > "$PATCH_BASE/.studio-version"
+assert_eq "$(installed_version "$PATCH_BASE")" "2026.1.4.8" \
+    "installed_version prioriza .studio-version (patch sin cambio de dataDir)"
+
 # 3. version_from_url extrae la versión de la ruta ide-zips
 assert_eq "$(version_from_url 'https://edgedl.me.gvt1.com/android/studio/ide-zips/2026.1.4.8/x-linux.tar.gz')" "2026.1.4.8" \
     "version_from_url extrae la versión de la URL"

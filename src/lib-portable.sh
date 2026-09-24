@@ -104,16 +104,16 @@ version_gt() {
     return 1
 }
 
-# installed_version <base>: versión desde product-info.json o .studio-version
+# installed_version <base>: versión desde .studio-version (autoritativa) o product-info.json
 installed_version() {
     local base="$1"
     local v=""
-    if [ -f "$base/android-studio/product-info.json" ]; then
+    if [ -f "$base/.studio-version" ]; then
+        v="$(cat "$base/.studio-version")"
+    elif [ -f "$base/android-studio/product-info.json" ]; then
         v="$(sed -n 's/.*"dataDirectoryName"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
             "$base/android-studio/product-info.json" | head -n 1)" || return 1
         v="${v#AndroidStudio}"
-    elif [ -f "$base/.studio-version" ]; then
-        v="$(cat "$base/.studio-version")"
     fi
     printf '%s' "$v"
 }
@@ -149,11 +149,13 @@ update_ide() {
 
 # rollback <base>: restaura la instalación previa si sigue disponible
 rollback() {
-    local base="$1"
+    local base="$1" v
     [ -d "$base/android-studio.prev" ] || return 1
     rm -rf "$base/android-studio"
     mv "$base/android-studio.prev" "$base/android-studio"
-    installed_version "$base" > "$base/.studio-version"
+    rm -f "$base/.studio-version"
+    v="$(installed_version "$base")" || return 1
+    printf '%s\n' "$v" > "$base/.studio-version"
     return 0
 }
 
