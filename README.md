@@ -50,6 +50,31 @@ Ver todas las opciones: `./setup.sh --help`, `./uninstall.sh --help`.
 
 ---
 
+## ¿Cómo actualizo y mantengo la instalación al día?
+
+Hay **dos niveles** de actualización y conviene diferenciarlos:
+
+| Qué se actualiza | Cómo | Automático |
+|---|---|---|
+| **El IDE** (Android Studio + SDK) | El lanzador `studio-portable.sh` revisa contra Google la última versión estable (caché 24 h) y, si hay una nueva, descarga, verifica sha256 y hace el swap atómico dejando un `.prev` de respaldo | Sí, al arrancar |
+| **Los scripts del proyecto** (`setup.sh`, lanzador, `lib-portable.sh`, `studio.properties`) | Re-corrés `setup.sh --dest ...` (idempotente) o re-clonás el repo | No — manual |
+
+### Actualizar los scripts del repo (sync manual)
+
+Si cambiás este repo (o lo actualizás con `git pull`) y querés que tu instalación portable use los scripts nuevos, basta re-correr el instalador. Es **idempotente**: si `android-studio/` ya existe no vuelve a descargar ni toca el IDE; solo regenera el lanzador, la librería y la configuración desde el repo:
+
+```bash
+# 1. Si cambiaste algo o querés la última versión del repo
+git pull            # dentro del clon del repo
+
+# 2. Re-sincronizá la instalación (no re-descarga el IDE)
+./setup.sh --dest "$HOME/AndroidStudio-Portable"
+```
+
+> **TL;DR**: el IDE se actualiza solo; los scripts se sincronizan con un re-setup manual. No hay un "auto-sync de scripts" a propósito: el lanzador no se regenera desde el repo en cada arranque porque eso haría la instalación dependiente del clon y lenta. Si querés forzar el sync además con el lanzador en uso, corré el re-setup y después abrí `studio-portable.sh`.
+
+---
+
 ## ¿Cómo funciona?
 
 ### En una frase (para todos)
