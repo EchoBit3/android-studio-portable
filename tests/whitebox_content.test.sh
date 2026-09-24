@@ -64,12 +64,35 @@ assert_true "bash '$setup_script' --help 2>&1 | grep -q -- '--tar'" \
     "setup.sh documenta --tar en --help"
 
 # 5. setup.sh resuelve la URL estable oficial sin hardcodear una versión
-assert_true "grep -q 'stable_url()' '$setup_script'" \
-    "setup.sh define la resolución de la URL estable"
-assert_true "grep -q 'developer.android.com/studio' '$setup_script'" \
+assert_true "grep -q 'stable_url()' '$REPO_DIR/src/lib-portable.sh'" \
+    "lib-portable define la resolución de la URL estable"
+assert_true "grep -q 'developer.android.com/studio' '$REPO_DIR/src/lib-portable.sh'" \
     "stable_url consulta la página oficial"
-assert_true "! grep -qE 'ide-zips/[0-9]+\.[0-9]+' '$setup_script'" \
+assert_true "! grep -qE 'ide-zips/[0-9]+\.[0-9]+' '$REPO_DIR/src/lib-portable.sh'" \
     "stable_url no fija ningún número de versión"
+
+# 6. El lanzador integra la lógica de actualización sin convertirse en daemon
+assert_true "grep -q 'check_update' '$launcher_template'" \
+    "el lanzador invoca la comprobación de actualización"
+assert_true "grep -q 'lib-portable.sh' '$launcher_template'" \
+    "el lanzador delega en la librería instalada"
+assert_true "grep -q 'PORTABLE_NO_UPDATE' '$launcher_template'" \
+    "el lanzador expone la variable de escape para entornos sin red"
+assert_true "grep -q 'rollback' '$launcher_template'" \
+    "el lanzador restaura la versión anterior si la nueva no arranca"
+assert_true "grep -q 'update_ide' '$REPO_DIR/src/lib-portable.sh'" \
+    "lib-portable implementa la descarga y el swap atómico"
+
+# 7. setup.sh despliega lib-portable.sh y registra la versión instalada
+assert_true "grep -q 'lib-portable.sh' '$setup_script'" \
+    "setup.sh despliega la librería portable en el destino"
+assert_true "grep -q 'write_version' '$setup_script'" \
+    "setup.sh registra la versión instalada"
+
+# 8. Existe version.json como respaldo configurable, sin fijar versión en código
+assert_file_exists "$REPO_DIR/version.json" "existe el manifest de respaldo version.json"
+assert_true "grep -q '\"version\"' '$REPO_DIR/version.json'" \
+    "version.json declara la versión vigente"
 
 HOME="$SAVED_HOME"
 

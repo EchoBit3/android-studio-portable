@@ -37,7 +37,7 @@ bash "$REPO_DIR/setup.sh" --dest "$FAKE_DEST" --tar "$FAKE_TAR" --home "$FAKE_HO
 printf '== Caja negra: studio-portable.sh (lanzador) ==\n'
 
 # 1. El lanzador deriva BASE en runtime y exporta las variables al subproceso
-out="$(HOME="$FAKE_HOME" bash "$FAKE_DEST/studio-portable.sh" 2>&1)"
+out="$(HOME="$FAKE_HOME" PORTABLE_NO_UPDATE=1 bash "$FAKE_DEST/studio-portable.sh" 2>&1)"
 rc=$?
 assert_eq "$rc" "0" "el lanzador termina con código 0 cuando el binario existe"
 
