@@ -5,6 +5,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
+# shellcheck source=src/lib-portable.sh
+source "$SCRIPT_DIR/src/lib-portable.sh"
+
 DEST=""
 TAR_SRC=""
 HOME_DIR="$HOME"
@@ -63,19 +66,14 @@ create_tree() {
 fetch_tar() {
     local src="$1"
     local out="$DEST/android-studio.tar.gz"
-    if [ -f "$src" ]; then
-        cp "$src" "$out"
-    elif printf '%s' "$src" | grep -qE '^https?://'; then
-        if command -v curl >/dev/null 2>&1; then
-            curl -L --fail --progress-bar -o "$out" "$src"
-        elif command -v wget >/dev/null 2>&1; then
-            wget -O "$out" "$src"
+    if ! fetch_archive "$src" "$out"; then
+        if [ -f "$src" ]; then
+            printf 'No existe el archivo --tar: %s\n' "$src" >&2
+        elif ! printf '%s' "$src" | grep -qE '^(https?|file)://'; then
+            printf 'No existe el archivo --tar: %s\n' "$src" >&2
         else
             printf 'Ni curl ni wget disponibles para descargar %s\n' "$src" >&2
-            exit 1
         fi
-    else
-        printf 'No existe el archivo --tar: %s\n' "$src" >&2
         exit 1
     fi
 }
@@ -120,8 +118,18 @@ extract_studio() {
     rm -f "$tmp_tar"
 }
 
+# write_version: registra la versión instalada en .studio-version
+write_version() {
+    local v
+    v="$(installed_version "$DEST")"
+    if [ -n "$v" ]; then
+        printf '%s\n' "$v" > "$DEST/.studio-version"
+    fi
+}
+
 generate_launcher() {
     install -m 0755 "$SCRIPT_DIR/src/studio-portable.sh.in" "$DEST/studio-portable.sh"
+    install -m 0644 "$SCRIPT_DIR/src/lib-portable.sh" "$DEST/lib-portable.sh"
 }
 
 generate_properties() {
@@ -152,9 +160,11 @@ extract_studio
 generate_launcher
 generate_properties
 generate_sdk_state
+write_version
 link_sdk
 
 printf 'Android Studio portable instalado en: %s\n' "$DEST"
 printf 'Lanzador: %s\n' "$DEST/studio-portable.sh"
+printf 'Versión instalada: %s\n' "$(installed_version "$DEST")"
 [ "$DO_SYMLINK" -eq 1 ] && printf 'Symlink: %s/Android/Sdk -> %s/sdk\n' "$HOME_DIR" "$DEST"
 exit 0

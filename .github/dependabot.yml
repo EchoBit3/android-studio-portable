@@ -1,0 +1,13 @@
+# Dependabot: mantiene las acciones de GitHub Actions actualizadas y seguras.
+# El proyecto es bash puro (sin gestor de paquetes), por eso el único ecosistema
+# con dependencias versionables son las acciones de los workflows.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependabot"
+      - "ci"

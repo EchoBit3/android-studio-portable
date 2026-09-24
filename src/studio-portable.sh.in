@@ -31,4 +31,40 @@ XML
 mkdir -p "$HOME/Android"
 ln -sfn "$BASE/sdk" "$HOME/Android/Sdk"
 
-exec "$BASE/android-studio/bin/studio.sh" "$@"
+# Actualización: Google es la fuente, el repo es el respaldo si Google cambia formato.
+PORTABLE_NO_UPDATE="${PORTABLE_NO_UPDATE:-0}"
+if [ "${PORTABLE_NO_UPDATE:-0}" != "1" ] && [ -f "$BASE/lib-portable.sh" ]; then
+    # shellcheck source=lib-portable.sh
+    source "$BASE/lib-portable.sh"
+    check_update "$BASE"
+    UPDATE_APPLIED=$?
+fi
+
+if [ "${UPDATE_APPLIED:-0}" != "10" ]; then
+    exec "$BASE/android-studio/bin/studio.sh" "$@"
+fi
+
+# La versión nueva debe sobrevivir 60 s. Si no, rollback y relanza la anterior.
+"$BASE/android-studio/bin/studio.sh" "$@" &
+IDE_PID=$!
+IDE_END=$((SECONDS + 60))
+while [ "$SECONDS" -lt "$IDE_END" ]; do
+    if ! kill -0 "$IDE_PID" 2>/dev/null; then
+        break
+    fi
+    sleep 2
+done
+if ! kill -0 "$IDE_PID" 2>/dev/null; then
+    wait "$IDE_PID"
+    IDE_RC=$?
+    if [ "$IDE_RC" -ne 0 ]; then
+        if rollback "$BASE"; then
+            printf 'La versión nueva no arrancó; se restauró la anterior.\n' >&2
+        fi
+        exec "$BASE/android-studio/bin/studio.sh" "$@"
+    fi
+    exit "$IDE_RC"
+fi
+
+# Sobrevivió la ventana de vigilancia: sigue corriendo y el lanzador termina.
+exit 0

@@ -1,59 +1,170 @@
 # android-studio-portable
 
-Android Studio autocontenido en un solo directorio: SDK, AVDs, Gradle, cachés, configuración JetBrains y temporales; movible y reproducible, sin binarios en el repo.
+Android Studio **autocontenido en un solo directorio**: el IDE, el SDK de Android, los emuladores (AVDs), Gradle, las cachés, la configuración de JetBrains y los temporales viven **dentro de una única carpeta**. Podés mover esa carpeta, copiarla a otra máquina o borrarla entera sin dejar rastros.
 
-## Requisitos
+> TL;DR: `./setup.sh --dest $HOME/AndroidStudio-Portable` descarga el tar.gz oficial de Google, instala todo en esa carpeta y te deja un lanzador `studio-portable.sh`. Nada se escribe fuera del directorio salvo un symlink (`$HOME/Android/Sdk`) que el IDE necesita y que se puede desactivar.
 
-- Linux (validado en Fedora) con bash 5.x
+---
+
+## ¿Para quién es?
+
+| Perfil | Qué te aporta |
+|---|---|
+| **Usuarios no técnicos** | Android Studio "en una carpeta": instalás, usás, y si querés sacártelo de encima, borrás la carpeta. Sin instaladores del sistema, sin permisos de administrador. |
+| **Desarrolladores** | Entorno reproducible y desplegable por scripts: control total de variables (`ANDROID_HOME`, `GRADLE_USER_HOME`, rutas XDG/temporales), sin binarios en el repo, con suite de pruebas. |
+| **Estudiantes / laboratorios** | Misma versión exacta en varias máquinas: clonás el repo, corrés `setup.sh`, y todos quedan iguales. |
+
+---
+
+## ¿Qué requisitos necesito?
+
+- Linux (validado en Fedora/KDE) con **bash 5.x**
 - `tar` y `curl` o `wget`
-- Si usás el emulador: KVM activado
+- Si querés usar el emulador de Android: **KVM activado**
 
-## Instalar
+No necesitás `sudo`, ni Java/Gradle instalados por separado (el IDE trae su propio runtime `jbr/`).
+
+---
+
+## ¿Cómo instalo?
 
 ```bash
 # 1. Cloná el repo
-git clone https://github.com/<TU_USUARIO>/android-studio-portable.git
+git clone https://github.com/EchoBit3/android-studio-portable.git
 cd android-studio-portable
 
-# 2. Corré las pruebas (opcional pero recomendado)
-bash tests/run-tests.sh
+# 2. Opcional pero recomendado: corré las pruebas
+bash tests/run-tests.sh            # 101 aserciones de caja negra y blanca
 
-# 3. Instalá portable (descarga el tar.gz oficial de Google ~1.5 GB)
-#    Sin --tar, setup.sh resuelve la última versión estable desde
-#    developer.android.com/studio y la descarga (requiere curl).
+# 3. Instalá (descarga ~1.5 GB del tar.gz oficial de Google)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable"
 
-# 4. O usá un tar.gz ya descargado (no requiere red en el setup)
+# 4. Otro ejemplo: usá un tar.gz que ya tenés descargado (sin red en el setup)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable" --tar ~/Descargas/android-studio-*-linux.tar.gz
 
 # 5. Lanzá
 "$HOME/AndroidStudio-Portable/studio-portable.sh"
 ```
 
-## Qué hace cada cosa
+Ver todas las opciones: `./setup.sh --help`, `./uninstall.sh --help`.
+
+---
+
+## ¿Cómo funciona?
+
+### En una frase (para todos)
+
+El lanzador `studio-portable.sh` abre Android Studio diciéndole: *"guardá **todo** —proyectos aparte, configuración, SDK, emuladores, cachés, temporales— dentro de la carpeta donde yo estoy parado"*. Eso se logra exportando variables de entorno que el IDE y las herramientas de Android ya respetan.
+
+### Diagrama de flujo
+
+```mermaid
+flowchart TD
+    subgraph Setup["setup.sh (una sola vez)"]
+        A[--dest DIR] --> B[Crea estructura autocontenida]
+        B --> C{¿Hay android-studio/ en el destino?}
+        C -- No --> D[Descarga o usa --tar tar.gz oficial]
+        D --> E[Extrae android-studio/]
+        C -- Sí --> E
+        E --> F[Genera studio-portable.sh desde template]
+        F --> G[Genera studio.properties desde template]
+        G --> H[Escribe AndroidSdkPathStore.xml]
+        H --> I[Symlink $HOME/Android/Sdk -&gt; DIR/sdk]
+    end
+
+    subgraph Run["studio-portable.sh (cada arranque)"]
+        J[Deriva BASE en runtime desde BASH_SOURCE] --> K[Exporta ANDROID_HOME/ANDROID_SDK_ROOT]
+        K --> L[Exporta AVD, Gradle, XDG, TMP]
+        L --> M[Reescribe AndroidSdkPathStore.xml con BASE/sdk]
+        M --> N[Refresca symlink Android/Sdk idempotente]
+        N --> O[exec bin/studio.sh]
+    end
+
+    subgraph Data["Todo autocontenido en DIR"]
+        R1[sdk/ emulador avd/]
+        R2[.gradle/ .android/ .config/]
+        R3[AndroidStudioConfig System Plugins Logs]
+        R4[tmp/ y caches XDG]
+    end
+
+    Setup --> Data
+    Run --> Data
+```
+
+> La fuente del diagrama es `docs/assets/portable-flujo.md` (Mermaid renderizado por GitHub). El archivo se mantiene ahí para que se visualice correctamente en el repo.
+
+### Detalle técnico (para desarrolladores)
+
+El lanzador (`src/studio-portable.sh.in`) hace cinco cosas en cada arranque:
+
+1. **Deriva su base en runtime** desde `BASH_SOURCE`, así la carpeta se puede mover o renombrar sin reconfigurar nada.
+2. **Exporta variables de entorno** apuntando a subcarpetas del directorio:
+
+   | Variable | Subcarpeta | Qué contiene |
+   |---|---|---|
+   | `ANDROID_HOME` / `ANDROID_SDK_ROOT` | `sdk/` | SDK de Android, plataformas, build-tools |
+   | `ANDROID_AVD_HOME` | `avd/` | Emuladores (AVDs) |
+   | `ANDROID_USER_HOME` | `.android/` | Estado SDK/AVD de Google |
+   | `GRADLE_USER_HOME` | `.gradle/` | Caché y wrapper de Gradle |
+   | `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME` | `.config/`, `.cache/`, `.local/share/` | Config/caché/datos de escritorio |
+   | `TMPDIR`, `TEMP`, `TMP` | `tmp/` | Temporales |
+   | `STUDIO_PROPERTIES` | `studio.properties` | Opciones JetBrains extendidas |
+3. **Reescribe la ruta del SDK que el asistente hardcodea** (`AndroidStudioConfig/options/AndroidSdkPathStore.xml`). Android Studio persiste ahí la ruta absoluta del SDK la primera vez; este proyecto la sobreescribe con `$BASE/sdk` real en cada arranque.
+4. **Refresca el symlink idempotente** `$HOME/Android/Sdk -> $BASE/sdk`: algunos componentes de Google solo saben buscar el SDK en `~/Android/Sdk`. Se crea con `ln -sfn` (no falla si ya existe) y `uninstall.sh` solo lo borra si apunta a este destino.
+5. **Delega en el IDE**: `exec bin/studio.sh`.
+
+### ¿Por qué el symlink y el XML? (la decisión incómoda)
+
+Android Studio tiene **dos caminos** para saber dónde está el SDK, y ninguno respeta el 100% de las variables:
+
+- El asistente de configuración y varios componentes **persisten** la ruta en `AndroidSdkPathStore.xml` (no la derivan de `ANDROID_HOME`).
+- Otras herramientas buscan **directamente** en `~/Android/Sdk`.
+
+Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlink. Es la única forma probada de que la instalación siga siendo realmente portable — documentado con su fallo original en `docs/04-fallos.md` (F1).
+
+---
+
+## ¿Qué hace cada archivo?
 
 | Archivo | Rol |
 |---|---|
-| `setup.sh` | Crea la estructura, extrae el IDE, genera lanzador + config, enlaza `$HOME/Android/Sdk`. Flags: `--dest`, `--tar`, `--home`, `--no-symlink`, `--help`. |
+| `setup.sh` | Instalador: crea la estructura, extrae el IDE (descarga la última estable o usa `--tar`), genera lanzador + config, symlink. Flags: `--dest`, `--tar`, `--home`, `--no-symlink`, `--help`. |
 | `uninstall.sh` | Revierte el setup. Flags: `--dest`, `--home`, `--keep-binaries`. |
-| `src/studio-portable.sh.in` | Template del lanzador; deriva su ubicación en runtime. |
-| `src/studio.properties.in` | Template de config JetBrains con rutas relativas. |
-| `tests/` | Suites de caja negra y caja blanca. |
-| `docs/` | Diseño, estrategia de pruebas, entorno de validación y fallos resueltos. |
+| `src/studio-portable.sh.in` | Template del lanzador (sin rutas del operador; deriva todo en runtime). |
+| `src/studio.properties.in` | Template de configuración JetBrains con rutas relativas. |
+| `src/lib-portable.sh` | Librería reutilizable (resolución de versión estable, actualización del IDE). |
+| `tests/` | 6 suites de caja negra y blanca (101 aserciones). |
+| `.github/` | CI, code scanning (ShellCheck) y Dependabot. |
+| `docs/` | Cómo funciona, por qué se decidió así, pruebas, QA, privacidad, leyes/ISO. |
+| `VERSION` | Versión SemVer del repo (ver `CHANGELOG.md`). |
 
-## Cómo funciona la portabilidad
+---
 
-Flujo completo en `docs/assets/portable-flujo.mmd`. En una frase: el lanzador exporta `ANDROID_HOME`, `ANDROID_USER_HOME`, `ANDROID_AVD_HOME`, `GRADLE_USER_HOME`, las rutas XDG y temporales apuntando **todas** a subcarpetas del directorio que lo contiene, y reescribe la ruta del SDK que el asistente hardcodea (`AndroidSdkPathStore.xml`) más el symlink `$HOME/Android/Sdk` para los componentes que la ignoran.
-
-Varables que se redirigen: `ANDROID_SDK_ROOT`, `ANDROID_HOME`, `ANDROID_USER_HOME`, `ANDROID_AVD_HOME`, `GRADLE_USER_HOME`, `XDG_CONFIG_HOME`, `XDG_CACHE_HOME`, `XDG_DATA_HOME`, `TMPDIR`/`TEMP`/`TMP`, `STUDIO_PROPERTIES`, y `idea.config/system/plugins/log/cache` vía `studio.properties`.
-
-## Verificación
+## ¿Cómo verifico la calidad?
 
 ```bash
-bash tests/run-tests.sh   # 49 aserciones, todas verde
+bash tests/run-tests.sh
 ```
 
-Estado de verificación: PASS ejecutado. Además, la instalación real se valida de forma periódica por un bot de humo (fuera del repo) que registra en `docs/04-fallos.md` qué falla y cómo se resolvió.
+- **101 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
+- **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`.
+- **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
+- **Dependabot** mantiene seguras las acciones de los workflows.
+- **Secret scanning** activo: GitHub detecta tokens/claves filtrados antes de que se propaguen.
+
+Estrategia de pruebas en `docs/02-pruebas.md`; registro de fallos y su solución en `docs/04-fallos.md`; checklist QA completo en `docs/05-qa.md`.
+
+## ¿Qué sabe de vos el proyecto? (privacidad)
+
+Este proyecto **no recopila datos**: no pide correo, no tiene telemetría, no guarda estadísticas. Todo lo que genera Android Studio queda en tu carpeta portable. Lo único que se escribe fuera es el symlink `$HOME/Android/Sdk` (removible con `uninstall.sh`). Detalle completo en `docs/06-privacidad.md`.
+
+## ¿Contra qué estándares se mide?
+
+El proyecto se documenta contra estándares internacionales (ISO/IEC 25010 calidad, ISO/IEC 27001/27002 seguridad, ISO/IEC 12207 ciclo de vida) y la normativa chilena de datos y ciberseguridad vigente. Ver `docs/07-estandares.md`.
+
+## ¿Cómo se versiona?
+
+El repo usa versionado semántico: la versión actual vive en `VERSION` (SemVer `MAJOR.MINOR.PATCH`) y los cambios por hito en `CHANGELOG.md`. Los commits siguen Conventional Commits (prefijos `feat|fix|docs|test|ci|chore`) y los PRs van `feat/*` → `dev` → `main`.
 
 ## Reproducibilidad
 
@@ -61,4 +172,8 @@ Estado de verificación: PASS ejecutado. Además, la instalación real se valida
 
 ## Licencia
 
-MIT — Porto en `LICENSE`.
+MIT — Port en `LICENSE`.
+
+---
+
+> ¿Sirve para tu caso? Cloná el repo, corré `bash tests/run-tests.sh` y probá `./setup.sh --dest ...`. ¿Encontraste un entorno donde no anda o una mejora? Abrí un issue o aportá la prueba: la base está en `docs/05-qa.md` y el cómo en `docs/04-fallos.md`.
