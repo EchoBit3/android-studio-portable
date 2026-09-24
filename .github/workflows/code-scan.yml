@@ -1,0 +1,29 @@
+name: Code scanning
+
+on:
+  push:
+    branches: [main, dev, feat/*]
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  shellcheck:
+    name: ShellCheck (bash)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: ShellCheck analysis
+        uses: reactive-firewall/shellcheck-scan@v2
+        with:
+          severity: warning
+          shell-format: bash
+          publish-artifacts: false
