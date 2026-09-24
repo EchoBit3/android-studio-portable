@@ -26,7 +26,7 @@ uninstall.sh            Reversa de setup.sh (conserva o borra binarios)
 src/studio-portable.sh.in   Template del lanzador (sin rutas del operador)
 src/studio.properties.in    Template de config JetBrains con rutas relativas
 src/lib-portable.sh         Librería reutilizable (resolución de versión, update)
-tests/                      Suites de caja negra y caja blanca (101 aserciones)
+tests/                      Suites de caja negra y caja blanca (102 aserciones)
 docs/                       Documentación y diagramas
 .github/                    CI, code scanning (ShellCheck), Dependabot
 VERSION                     Versión SemVer del repo

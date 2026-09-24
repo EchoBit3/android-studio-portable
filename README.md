@@ -34,7 +34,7 @@ git clone https://github.com/EchoBit3/android-studio-portable.git
 cd android-studio-portable
 
 # 2. Opcional pero recomendado: corré las pruebas
-bash tests/run-tests.sh            # 101 aserciones de caja negra y blanca
+bash tests/run-tests.sh            # 102 aserciones de caja negra y blanca
 
 # 3. Instalá (descarga ~1.5 GB del tar.gz oficial de Google)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable"
@@ -133,7 +133,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 | `src/studio-portable.sh.in` | Template del lanzador (sin rutas del operador; deriva todo en runtime). |
 | `src/studio.properties.in` | Template de configuración JetBrains con rutas relativas. |
 | `src/lib-portable.sh` | Librería reutilizable (resolución de versión estable, actualización del IDE). |
-| `tests/` | 6 suites de caja negra y blanca (101 aserciones). |
+| `tests/` | 6 suites de caja negra y blanca (102 aserciones). |
 | `.github/` | CI, code scanning (ShellCheck) y Dependabot. |
 | `docs/` | Cómo funciona, por qué se decidió así, pruebas, QA, privacidad, leyes/ISO. |
 | `VERSION` | Versión SemVer del repo (ver `CHANGELOG.md`). |
@@ -146,7 +146,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 bash tests/run-tests.sh
 ```
 
-- **101 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
+- **102 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
 - **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`.
 - **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
 - **Dependabot** mantiene seguras las acciones de los workflows.
