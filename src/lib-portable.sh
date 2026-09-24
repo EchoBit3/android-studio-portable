@@ -161,7 +161,7 @@ rollback() {
 # Retorna 10 si se aplicó una actualización, 0 en caso contrario.
 check_update() {
     local base="$1"
-    local now stamp cstamp cu cv v_inst c_ver c_url c_sha m_url m_sha m_ver page
+    local now cstamp v_inst c_ver c_url c_sha m_url m_sha m_ver page manifest
     [ -n "$base" ] || return 0
     [ "${PORTABLE_NO_UPDATE:-0}" = "1" ] && return 0
     command -v flock >/dev/null 2>&1 || return 0
@@ -182,19 +182,20 @@ check_update() {
         m_url="" m_sha="" m_ver=""
         if [ -n "${PORTABLE_PAGE_FILE:-}" ] && [ -f "$PORTABLE_PAGE_FILE" ]; then
             page="$(cat "$PORTABLE_PAGE_FILE")"
-            set -- $(page_manifest "$page") && fok=1
+            manifest="$(page_manifest "$page")" && fok=1
         elif command -v curl >/dev/null 2>&1; then
             page="$(curl -fsSL --max-time "$PORTABLE_META_TIMEOUT" -A 'Mozilla/5.0' 'https://developer.android.com/studio')" || page=""
             if [ -n "$page" ]; then
-                set -- $(page_manifest "$page") && fok=1
+                manifest="$(page_manifest "$page")" && fok=1
             fi
         fi
         if [ "${fok:-0}" = "1" ]; then
-            m_url="$1"; m_sha="$2"; m_ver="$(version_from_url "$m_url")"
+            read -r m_url m_sha <<< "$manifest"
+            m_ver="$(version_from_url "$m_url")"
         else
-            set -- $(repo_manifest) && r_ok=1
+            manifest="$(repo_manifest)" && r_ok=1
             if [ "${r_ok:-0}" = "1" ]; then
-                m_url="$1"; m_sha="$2"; m_ver="$3"
+                read -r m_url m_sha m_ver <<< "$manifest"
             fi
         fi
         if [ -n "$m_url" ] && [ -n "$m_ver" ]; then
