@@ -61,7 +61,33 @@ assert_true "[ -x '$FAKE_DEST/studio-portable.sh' ]" "studio-portable.sh tiene p
 assert_true "[ -f '$FAKE_STUDIO_BIN/studio.sh' ]" "setup.sh extrae android-studio/bin/studio.sh del tar"
 
 HOME="$SAVED_HOME"
-cd "$SAVED_PWD"
+cd "$SAVED_PWD" || exit 1
+
+# 6. Rechaza tar.gz con path traversal (../) antes de extraer
+TRAV_ROOT="$TMP_ROOT/trav"
+mkdir -p "$TRAV_ROOT"
+printf 'x' > "$TRAV_ROOT/fuera.txt"
+tar -C "$TRAV_ROOT" --transform='s|^|../|' -czf "$TMP_ROOT/trav-bad.tar.gz" fuera.txt 2>/dev/null
+TRAV_DEST="$TMP_ROOT/trav-dest"
+mkdir -p "$TRAV_DEST"
+bash "$setup_script" --dest "$TRAV_DEST" --tar "$TMP_ROOT/trav-bad.tar.gz" --home "$FAKE_HOME" --no-symlink >"$TMP_ROOT/trav.log" 2>&1
+trav_rc=$?
+assert_true "[ '$trav_rc' -ne 0 ]" "setup.sh rechaza un tar.gz con rutas ../"
+assert_true "[ ! -e '$TMP_ROOT/fuera.txt' ]" "el tar hostil no escribió fuera del destino"
+
+# 7. Rechaza tar.gz con rutas absolutas
+tar -C "$TRAV_ROOT" --transform='s|^|/|' -czf "$TMP_ROOT/abs-bad.tar.gz" fuera.txt 2>/dev/null
+ABS_DEST="$TMP_ROOT/abs-dest"
+mkdir -p "$ABS_DEST"
+bash "$setup_script" --dest "$ABS_DEST" --tar "$TMP_ROOT/abs-bad.tar.gz" --home "$FAKE_HOME" --no-symlink >"$TMP_ROOT/abs.log" 2>&1
+abs_rc=$?
+assert_true "[ '$abs_rc' -ne 0 ]" "setup.sh rechaza un tar.gz con rutas absolutas"
+assert_true "[ ! -e '$ABS_DEST/fuera.txt' ]" "el tar hostil absoluto no se extrajo dentro del destino"
+
+# 8. setup.sh falla sin --dest y documenta el flag
+bash "$setup_script" >"$TMP_ROOT/nodest.log" 2>&1
+assert_eq "$?" "1" "setup.sh sin --dest termina con código 1"
+assert_true "grep -q -- '--dest' '$TMP_ROOT/nodest.log'" "setup.sh sin --dest imprime la ayuda con --dest"
 
 if summarize; then
     exit 0

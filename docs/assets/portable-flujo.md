@@ -1,3 +1,9 @@
+# Diagrama de flujo portable
+
+> GitHub renderiza Mermaid solo dentro de bloques de código en Markdown (no en `.mmd`).
+> Este archivo es la fuente canónica que sí se visualiza en el repo.
+
+```mermaid
 flowchart TD
     subgraph Setup["setup.sh (una sola vez)"]
         A[--dest DIR] --> B[Crea estructura autocontenida]
@@ -28,3 +34,4 @@ flowchart TD
 
     Setup --> Data
     Run --> Data
+```
