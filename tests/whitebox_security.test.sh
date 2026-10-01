@@ -37,13 +37,12 @@ assert_true "grep -q 'tar -tzf' '$REPO_DIR/setup.sh'" \
 assert_true "grep -q 'sha256sum' '$REPO_DIR/src/lib-portable.sh'" \
     "lib-portable verifica el sha256 del update"
 
-# 5. Sin secretos ni credenciales en el repo
-if command -v git >/dev/null 2>&1; then
-    leaked="$(git -C "$REPO_DIR" grep -lE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)' -- ':!tests' 2>/dev/null || true)"
-    [ -z "$leaked" ]
-    res=$?
-    assert_true "[ '$res' -eq 0 ]" "el árbol no contiene tokens ni claves privadas"
-fi
+# 5. Sin secretos ni credenciales en el repo (grep -r nativo, corre en las 5 distros)
+leaked="$(grep -rlE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)' \
+    --exclude-dir=.git --exclude-dir=tests "$REPO_DIR" 2>/dev/null || true)"
+[ -z "$leaked" ]
+res=$?
+assert_true "[ '$res' -eq 0 ]" "el árbol no contiene tokens ni claves privadas"
 
 # 6. La versión instalable se expone en .studio-version (base para el QA de versionado)
 assert_file_exists "$REPO_DIR/version.json" "existe el manifest de versión de respaldo"
