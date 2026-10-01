@@ -44,7 +44,11 @@ assert_true "! grep -q 'usuario' '$launcher_template'" \
 assert_true "grep -q 'ln -sfn' '$launcher_template'" \
     "el lanzador crea el symlink idempotente con ln -sfn"
 assert_true "grep -q 'exec ' '$launcher_template'" \
-    "el lanzador delega en el studio.sh del destino con exec"
+    "el lanzador delega en el launcher del destino con exec"
+assert_true "grep -q 'bin/studio\"' '$launcher_template'" \
+    "el lanzador prefiere el launcher nativo bin/studio"
+assert_true "grep -q 'bin/studio.sh' '$launcher_template'" \
+    "el lanzador conserva bin/studio.sh como fallback"
 
 # 3. setup.sh es idempotente: correrlo dos veces no cambia el resultado
 bash "$setup_script" --dest "$FAKE_DEST" --tar "$FAKE_TAR" \
