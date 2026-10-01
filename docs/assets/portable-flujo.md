@@ -24,7 +24,7 @@ flowchart TD
         K --> L[Exporta AVD, Gradle, XDG, TMP]
         L --> M[Reescribe AndroidSdkPathStore.xml con BASE/sdk]
         M --> N[Refresca symlink Android/Sdk idempotente]
-        N --> O[exec bin/studio.sh]
+        N --> O[exec bin/studio nativo, fallback bin/studio.sh]
     end
 
     subgraph Data["Todo autocontenido en DIR"]
@@ -47,5 +47,6 @@ flowchart TD
 | `I`/`N` → symlink `$HOME/Android/Sdk` | Algunos componentes de Android **solo** leen el SDK desde ahí; un symlink de 0 bytes cubre eso sin copiar nada. Es el único archivo fuera de `DIR` (trade-off documentado en `01-diseno.md`). |
 | `J` → `BASE` derivado de `BASH_SOURCE` | Portabilidad real: movés la carpeta y el lanzador sigue encontrando la base sin configuración ni rutas fijas. |
 | `N` → symlink idempotente (`ln -sfn`) | Cada arranque refresca el enlace sin error si ya existe. |
+| `O` → launcher nativo con fallback | JetBrains recomienda `bin/studio` nativo (arranque más rápido e integración Wayland, from 2024.2); `bin/studio.sh` queda como script legacy. El lanzador prefiere el nativo y cae al script si no está. |
 
 > Over to you: ¿cambiarías alguna de estas decisiones o agregarías una fase? Dejalo anotado y cerralo con su test en `docs/04-fallos.md`.
