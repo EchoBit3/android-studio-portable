@@ -18,8 +18,7 @@ Android Studio **autocontenido en un solo directorio**: el IDE, el SDK de Androi
 
 ## ¿Qué requisitos necesito?
 
-- Linux (validado en Fedora/KDE) con **bash 5.x**
-- `tar` y `curl` o `wget`
+- Linux con **bash 5.x** — cualquier distro con `tar` + `curl`/`wget` + `flock`. Validado en **Fedora 44** y **CachyOS**; la CI corre la suite en Ubuntu, CachyOS, Arch, Fedora y Debian
 - Si querés usar el emulador de Android: **KVM activado**
 
 No necesitás `sudo`, ni Java/Gradle instalados por separado (el IDE trae su propio runtime `jbr/`).
@@ -34,7 +33,7 @@ git clone https://github.com/EchoBit3/android-studio-portable.git
 cd android-studio-portable
 
 # 2. Opcional pero recomendado: corré las pruebas
-bash tests/run-tests.sh            # 107 aserciones de caja negra y blanca
+bash tests/run-tests.sh            # 108 aserciones de caja negra y blanca
 
 # 3. Instalá (descarga ~1.5 GB del tar.gz oficial de Google)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable"
@@ -160,7 +159,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 | `src/studio-portable.sh.in` | Template del lanzador (sin rutas del operador; deriva todo en runtime). |
 | `src/studio.properties.in` | Template de configuración JetBrains con rutas relativas. |
 | `src/lib-portable.sh` | Librería reutilizable (resolución de versión estable, actualización del IDE). |
-| `tests/` | 6 suites de caja negra y blanca (107 aserciones). |
+| `tests/` | 6 suites de caja negra y blanca (108 aserciones). |
 | `.github/` | CI, code scanning (ShellCheck) y Dependabot. |
 | `docs/` | Cómo funciona, por qué se decidió así, pruebas, QA, privacidad, leyes/ISO. |
 | `VERSION` | Versión SemVer del repo (ver `CHANGELOG.md`). |
@@ -173,8 +172,8 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 bash tests/run-tests.sh
 ```
 
-- **107 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
-- **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`.
+- **108 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
+- **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`, en **5 distros** (Ubuntu + matriz: CachyOS, Arch, Fedora, Debian).
 - **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
 - **Dependabot** mantiene seguras las acciones de los workflows.
 - **Secret scanning** activo: GitHub detecta tokens/claves filtrados antes de que se propaguen.

@@ -26,7 +26,7 @@ uninstall.sh            Reversa de setup.sh (conserva o borra binarios)
 src/studio-portable.sh.in   Template del lanzador (sin rutas del operador)
 src/studio.properties.in    Template de config JetBrains con rutas relativas
 src/lib-portable.sh         Librería reutilizable (resolución de versión, update)
-tests/                      Suites de caja negra y caja blanca (107 aserciones)
+tests/                      Suites de caja negra y caja blanca (108 aserciones)
 docs/                       Documentación y diagramas
 .github/                    CI, code scanning (ShellCheck), Dependabot
 VERSION                     Versión SemVer del repo
@@ -58,7 +58,7 @@ El lanzador ataca ambos frentes: reescribe el XML **y** crea el symlink. Es la �
 
 ## Supuestos y límites
 
-- Sistema Linux (target Fedora/KDE), bash 5.x.
+- Sistema Linux con bash 5.x, sin gestor de paquetes en el código (invariante `whitebox_content`); validado en Fedora y CachyOS, CI en Ubuntu/Arch/Fedora/Debian.
 - El emulador necesita KVM; si el AVD se crea desde el IDE usa `ANDROID_AVD_HOME=BASE/avd`.
 - Premium edge: algunos plugins de terceros pueden escribir fuera; el repo documenta las variables que el 99 % respeta.
 - El repositorio sigue ISO/IEC/IEEE 12207 (ciclo de vida) y documenta calidad ISO/IEC 25010, seguridad ISO/IEC 27001/27002 y normativa chilena de datos — ver `07-estandares.md`.
