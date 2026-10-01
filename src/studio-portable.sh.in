@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Launcher portable de Android Studio. Generado por setup.sh; BASE se deriva en runtime.
-BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# readlink -f resuelve symlinks: el atajo ~/bin/studio puede apuntar aquí.
+BASE="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 
 # JetBrains recomienda el launcher nativo bin/studio (2024.2+); studio.sh es el
 # script legacy. Preferimos el nativo y caemos al script si no está disponible.
