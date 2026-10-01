@@ -2,6 +2,16 @@
 # Launcher portable de Android Studio. Generado por setup.sh; BASE se deriva en runtime.
 BASE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# JetBrains recomienda el launcher nativo bin/studio (2024.2+); studio.sh es el
+# script legacy. Preferimos el nativo y caemos al script si no está disponible.
+ide_launcher() {
+    if [ -x "$BASE/android-studio/bin/studio" ]; then
+        printf '%s\n' "$BASE/android-studio/bin/studio"
+    else
+        printf '%s\n' "$BASE/android-studio/bin/studio.sh"
+    fi
+}
+
 export ANDROID_SDK_ROOT="$BASE/sdk"
 export ANDROID_HOME="$BASE/sdk"
 export ANDROID_USER_HOME="$BASE/.android"
@@ -41,11 +51,11 @@ if [ "${PORTABLE_NO_UPDATE:-0}" != "1" ] && [ -f "$BASE/lib-portable.sh" ]; then
 fi
 
 if [ "${UPDATE_APPLIED:-0}" != "10" ]; then
-    exec "$BASE/android-studio/bin/studio.sh" "$@"
+    exec "$(ide_launcher)" "$@"
 fi
 
 # La versión nueva debe sobrevivir 60 s. Si no, rollback y relanza la anterior.
-"$BASE/android-studio/bin/studio.sh" "$@" &
+"$(ide_launcher)" "$@" &
 IDE_PID=$!
 IDE_END=$((SECONDS + 60))
 while [ "$SECONDS" -lt "$IDE_END" ]; do
@@ -61,7 +71,7 @@ if ! kill -0 "$IDE_PID" 2>/dev/null; then
         if rollback "$BASE"; then
             printf 'La versión nueva no arrancó; se restauró la anterior.\n' >&2
         fi
-        exec "$BASE/android-studio/bin/studio.sh" "$@"
+        exec "$(ide_launcher)" "$@"
     fi
     exit "$IDE_RC"
 fi

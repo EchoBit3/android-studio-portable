@@ -88,7 +88,7 @@ stable_url() {
 }
 
 extract_studio() {
-    if [ -x "$DEST/android-studio/bin/studio.sh" ]; then
+    if [ -x "$DEST/android-studio/bin/studio" ] || [ -x "$DEST/android-studio/bin/studio.sh" ]; then
         return
     fi
     local tmp_tar="$DEST/android-studio.tar.gz"

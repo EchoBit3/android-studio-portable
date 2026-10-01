@@ -135,7 +135,8 @@ update_ide() {
     fi
     tar -C "$stage/.tmp-extract" --no-same-owner -xzf "$tar"
     rm -f "$tar"
-    [ -x "$stage/.tmp-extract/android-studio/bin/studio.sh" ] || return 1
+    [ -x "$stage/.tmp-extract/android-studio/bin/studio" ] || \
+        [ -x "$stage/.tmp-extract/android-studio/bin/studio.sh" ] || return 1
     [ -x "$stage/.tmp-extract/android-studio/jbr/bin/java" ] || return 1
     [ -f "$stage/.tmp-extract/android-studio/product-info.json" ] || return 1
     if [ -d "$base/android-studio" ]; then
