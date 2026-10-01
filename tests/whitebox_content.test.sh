@@ -39,6 +39,8 @@ assert_true "! grep -q '/home/' '$properties_template'" \
 # 2. El template del lanzador deriva su base en runtime, sin hardcode
 assert_true "grep -q 'BASH_SOURCE' '$launcher_template'" \
     "el lanzador deriva su ubicación con BASH_SOURCE"
+assert_true "grep -q 'readlink -f' '$launcher_template'" \
+    "el lanzador resuelve symlinks con readlink -f al derivar BASE"
 assert_true "! grep -q 'usuario' '$launcher_template'" \
     "el lanzador no contiene el nombre de usuario del operador"
 assert_true "grep -q 'ln -sfn' '$launcher_template'" \

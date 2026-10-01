@@ -33,7 +33,7 @@ git clone https://github.com/EchoBit3/android-studio-portable.git
 cd android-studio-portable
 
 # 2. Opcional pero recomendado: corré las pruebas
-bash tests/run-tests.sh            # 108 aserciones de caja negra y blanca
+bash tests/run-tests.sh            # 111 aserciones de caja negra y blanca
 
 # 3. Instalá (descarga ~1.5 GB del tar.gz oficial de Google)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable"
@@ -57,6 +57,8 @@ Hay **dos niveles** de actualización y conviene diferenciarlos:
 |---|---|---|
 | **El IDE** (Android Studio + SDK) | El lanzador `studio-portable.sh` revisa contra Google la última versión estable (caché 24 h) y, si hay una nueva, descarga, verifica sha256 y hace el swap atómico dejando un `.prev` de respaldo | Sí, al arrancar |
 | **Los scripts del proyecto** (`setup.sh`, lanzador, `lib-portable.sh`, `studio.properties`) | Re-corrés `setup.sh --dest ...` (idempotente) o re-clonás el repo | No — manual |
+
+> **Nota**: la primera actualización descarga el tar completo (~1,5 GB) y puede tardar varios minutos según tu conexión — no es un bloqueo. Si se interrumpe, la descarga se retoma (`curl -C -`) en el próximo arranque y la instalación vigente queda intacta hasta que la nueva pasa la verificación sha256.
 
 ### Actualizar los scripts del repo (sync manual)
 
@@ -159,7 +161,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 | `src/studio-portable.sh.in` | Template del lanzador (sin rutas del operador; deriva todo en runtime). |
 | `src/studio.properties.in` | Template de configuración JetBrains con rutas relativas. |
 | `src/lib-portable.sh` | Librería reutilizable (resolución de versión estable, actualización del IDE). |
-| `tests/` | 6 suites de caja negra y blanca (108 aserciones). |
+| `tests/` | 6 suites de caja negra y blanca (111 aserciones). |
 | `.github/` | CI, code scanning (ShellCheck) y Dependabot. |
 | `docs/` | Cómo funciona, por qué se decidió así, pruebas, QA, privacidad, leyes/ISO. |
 | `VERSION` | Versión SemVer del repo (ver `CHANGELOG.md`). |
@@ -172,7 +174,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 bash tests/run-tests.sh
 ```
 
-- **108 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
+- **111 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
 - **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`, en **5 distros** (Ubuntu + matriz: CachyOS, Arch, Fedora, Debian).
 - **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
 - **Dependabot** mantiene seguras las acciones de los workflows.
