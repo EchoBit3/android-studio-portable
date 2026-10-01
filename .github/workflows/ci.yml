@@ -14,9 +14,10 @@ jobs:
       - name: Run repo test suites
         run: bash tests/run-tests.sh
 
-  # Matriz multi-distro: la misma suite sobre el userspace de cada familia.
-  # CachyOS usa su imagen oficial (es Arch con su kernel/repos); Arch sirve
-  # como referencia del userspace base que CachyOS deriva.
+  # Matriz multi-distro sin bootstrap: cada imagen ya trae bash/tar/coreutils
+  # y lo que la suite necesita. CachyOS usa su imagen oficial (es Arch con su
+  # kernel/repos); Arch sirve como referencia del userspace base que CachyOS
+  # deriva. fail-fast: false para que cada familia informe por separado.
   test-distros:
     name: suite ${{ matrix.distro }}
     runs-on: ubuntu-latest
@@ -26,21 +27,15 @@ jobs:
         include:
           - distro: cachyos
             image: docker.io/cachyos/cachyos:latest
-            bootstrap: pacman -Sy --noconfirm git tar curl util-linux coreutils
           - distro: archlinux
             image: docker.io/library/archlinux:latest
-            bootstrap: pacman -Sy --noconfirm git tar curl util-linux coreutils
           - distro: fedora
             image: docker.io/library/fedora:latest
-            bootstrap: dnf -y install git tar curl util-linux coreutils
           - distro: debian
             image: docker.io/library/debian:stable-slim
-            bootstrap: apt-get update -qq && apt-get -y -qq install git tar curl util-linux coreutils
     container:
       image: ${{ matrix.image }}
     steps:
-      - name: Dependencias de la distro
-        run: ${{ matrix.bootstrap }}
       - uses: actions/checkout@v7
       - name: Run repo test suites
         run: bash tests/run-tests.sh
