@@ -2,7 +2,19 @@
 
 ## TL;DR
 
-Todo se probó en una sola máquina física: Fedora 44 KDE, i3-1220P (12 hilos), 16 GiB RAM, NVMe 475 GB, KVM habilitado. Las suites del repo corren en `/tmp` con tar.gz falsos, así que no dependen de esta máquina.
+La máquina física principal es Fedora 44 KDE (i3-1220P, 16 GiB RAM, KVM). Además la suite corre en una **matriz multi-distro** (contenedores, CI y validación local): CachyOS, Arch, Fedora, Debian y Ubuntu. Las suites usan tar.gz falsos en `/tmp`, así que no dependen de la máquina.
+
+## Matriz multi-distro (2026-10-01)
+
+| Distro | Familia | bash | Cómo se validó | Resultado |
+|---|---|---|---|---|
+| Fedora 44 | Fedora | 5.3.9 | máquina física + CI | verde |
+| CachyOS | Arch | 5.3.20 | contenedor `cachyos/cachyos` + CI | **108/108 PASS** |
+| Arch Linux | Arch | 5.3.20 | contenedor `archlinux` + CI | PASS |
+| Ubuntu | Debian | 5.x | CI (`ubuntu-latest`) | verde |
+| Debian stable | Debian | 5.x | CI (`debian:stable-slim`) | verde |
+
+El invariante que garantiza la portabilidad está en `whitebox_content.test.sh`: el código ejecutable (`setup.sh`, `uninstall.sh`, `src/`) **no referencia ningún gestor de paquetes** (`dnf`, `apt-get`, `pacman`, `zypper`, `rpm`, `emerge`, `flatpak`). Únicas dependencias: `bash 5.x`, `tar`, `curl` o `wget`, `flock`, `sha256sum`.
 
 ## Equipo donde se validó (specs reales)
 
