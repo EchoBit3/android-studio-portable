@@ -98,6 +98,12 @@ assert_file_exists "$REPO_DIR/version.json" "existe el manifest de respaldo vers
 assert_true "grep -q '\"version\"' '$REPO_DIR/version.json'" \
     "version.json declara la versión vigente"
 
+# 9. Invariante multi-distro: el código ejecutable no depende de ningún gestor
+# de paquetes específico (dnf, apt, pacman, zypper, rpm, emerge, flatpak)
+assert_true "! grep -rqE '\bdnf\b|\bapt-get\b|\bpacman\b|\bzypper\b|\brpm\b|\bemerge\b|\bflatpak\b' \
+    '$setup_script' '$REPO_DIR/uninstall.sh' '$REPO_DIR/src/'" \
+    "el código no referencia gestores de paquete de ninguna distro"
+
 HOME="$SAVED_HOME"
 
 if summarize; then
