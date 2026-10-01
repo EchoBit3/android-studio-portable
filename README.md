@@ -34,7 +34,7 @@ git clone https://github.com/EchoBit3/android-studio-portable.git
 cd android-studio-portable
 
 # 2. Opcional pero recomendado: corré las pruebas
-bash tests/run-tests.sh            # 102 aserciones de caja negra y blanca
+bash tests/run-tests.sh            # 107 aserciones de caja negra y blanca
 
 # 3. Instalá (descarga ~1.5 GB del tar.gz oficial de Google)
 ./setup.sh --dest "$HOME/AndroidStudio-Portable"
@@ -102,7 +102,7 @@ flowchart TD
         K --> L[Exporta AVD, Gradle, XDG, TMP]
         L --> M[Reescribe AndroidSdkPathStore.xml con BASE/sdk]
         M --> N[Refresca symlink Android/Sdk idempotente]
-        N --> O[exec bin/studio.sh]
+        N --> O[exec bin/studio nativo, fallback bin/studio.sh]
     end
 
     subgraph Data["Todo autocontenido en DIR"]
@@ -117,6 +117,8 @@ flowchart TD
 ```
 
 > La fuente del diagrama es `docs/assets/portable-flujo.md` (Mermaid renderizado por GitHub). El archivo se mantiene ahí para que se visualice correctamente en el repo.
+
+> El launcher respeta las recomendaciones de JetBrains ([How to handle *Consider switching to a native launcher* notification, SUPPORT-A-56](https://youtrack.jetbrains.com/articles/SUPPORT-A-56/How-to-handle-Consider-switching-to-a-native-launcher-notification) y [How to start IDE from the command line, JetBrains IDEs Support](https://intellij-support.jetbrains.com/hc/en-us/articles/360011901879), ambos acceso 2026-09-24): prefiere el **launcher nativo** `bin/studio` (ELF, desde la 2024.2) por mejor arranque e integración Wayland, y cae a `bin/studio.sh` si el nativo no existe.
 
 ### Detalle técnico (para desarrolladores)
 
@@ -136,7 +138,7 @@ El lanzador (`src/studio-portable.sh.in`) hace cinco cosas en cada arranque:
    | `STUDIO_PROPERTIES` | `studio.properties` | Opciones JetBrains extendidas |
 3. **Reescribe la ruta del SDK que el asistente hardcodea** (`AndroidStudioConfig/options/AndroidSdkPathStore.xml`). Android Studio persiste ahí la ruta absoluta del SDK la primera vez; este proyecto la sobreescribe con `$BASE/sdk` real en cada arranque.
 4. **Refresca el symlink idempotente** `$HOME/Android/Sdk -> $BASE/sdk`: algunos componentes de Google solo saben buscar el SDK en `~/Android/Sdk`. Se crea con `ln -sfn` (no falla si ya existe) y `uninstall.sh` solo lo borra si apunta a este destino.
-5. **Delega en el IDE**: `exec bin/studio.sh`.
+5. **Delega en el IDE**: resuelve el launcher con `ide_launcher()` — prefiere `bin/studio` (nativo, recomendado por JetBrains) y usa `bin/studio.sh` como fallback si el nativo no está.
 
 ### ¿Por qué el symlink y el XML? (la decisión incómoda)
 
@@ -158,7 +160,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 | `src/studio-portable.sh.in` | Template del lanzador (sin rutas del operador; deriva todo en runtime). |
 | `src/studio.properties.in` | Template de configuración JetBrains con rutas relativas. |
 | `src/lib-portable.sh` | Librería reutilizable (resolución de versión estable, actualización del IDE). |
-| `tests/` | 6 suites de caja negra y blanca (102 aserciones). |
+| `tests/` | 6 suites de caja negra y blanca (107 aserciones). |
 | `.github/` | CI, code scanning (ShellCheck) y Dependabot. |
 | `docs/` | Cómo funciona, por qué se decidió así, pruebas, QA, privacidad, leyes/ISO. |
 | `VERSION` | Versión SemVer del repo (ver `CHANGELOG.md`). |
@@ -171,7 +173,7 @@ Por eso el lanzador ataca los dos frentes: reescribe el XML **y** crea el symlin
 bash tests/run-tests.sh
 ```
 
-- **102 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
+- **107 aserciones verde** en 6 suites (setup, lanzador, uninstall, update, whitebox contenido, whitebox seguridad).
 - **CI en GitHub Actions** corre la misma batería en cada push/PR a `main` y `dev`.
 - **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
 - **Dependabot** mantiene seguras las acciones de los workflows.
