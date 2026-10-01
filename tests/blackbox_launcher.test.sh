@@ -78,6 +78,7 @@ assert_true "! grep -q 'usuario' '$store'" "el store no contiene rutas del opera
 
 # 3b. Sin bin/studio (versiones previas), el lanzador cae al script legacy
 rm "$FAKE_DEST/android-studio/bin/studio"
+# shellcheck disable=SC2034  # out_fb se consume vía eval dentro de assert_true
 out_fb="$(HOME="$FAKE_HOME" PORTABLE_NO_UPDATE=1 bash "$FAKE_DEST/studio-portable.sh" 2>&1)"
 assert_eq "$?" "0" "el lanzador termina con código 0 usando el script legacy"
 assert_true "printf '%s' \"\$out_fb\" | grep -q 'LAUNCHER=script'" \
