@@ -177,6 +177,7 @@ bash tests/run-tests.sh
 - **Code scanning (ShellCheck)** sube hallazgos al tab de Seguridad del repo.
 - **Dependabot** mantiene seguras las acciones de los workflows.
 - **Secret scanning** activo: GitHub detecta tokens/claves filtrados antes de que se propaguen.
+- **Política de seguridad** en español en [`.github/SECURITY.md`](.github/SECURITY.md): alcance, garantías del diseño y cómo reportar (canal privado).
 
 Estrategia de pruebas en `docs/02-pruebas.md`; registro de fallos y su solución en `docs/04-fallos.md`; checklist QA completo en `docs/05-qa.md`.
 

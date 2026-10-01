@@ -1,6 +1,13 @@
 # Changelog
 
-Versión actual: `0.2.1` (ver `VERSION`).
+Versión actual: `0.2.2` (ver `VERSION`).
+
+## 2026-10-01 — v0.2.2 (seguridad en español + alerta SC2034)
+
+- **`.github/SECURITY.md`**: política de seguridad en español — alcance (scripts/CI) y fuera de alcance (binario de Google), garantías del diseño (sin sudo, SHA-256 en updates, secret scanning, suite offline) y canal de reporte privado. La pestaña Security de GitHub ahora muestra esta política en español en lugar del texto genérico en inglés.
+- **Alerta code scanning cerrada**: `tests/blackbox_launcher.test.sh` declara `# shellcheck disable=SC2034` en `out_fb` (se consume vía `eval` en `assert_true`, uso que ShellCheck no ve) — la alerta SC2034 abierta no volverá a generarse. ShellCheck local (imagen oficial, `-s bash -S warning`): rc=0.
+- **README**: bullet con enlace a la política de seguridad.
+- No cambia el conteo: **108 aserciones** en 6 suites.
 
 ## 2026-10-01 — v0.2.1 (multi-distro)
 
