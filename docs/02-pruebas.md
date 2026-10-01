@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Seis suites en `tests/` (108 aserciones totales en estado verde): 4 de caja negra (setup, lanzador, uninstall, update) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
+Seis suites en `tests/` (111 aserciones totales en estado verde): 4 de caja negra (setup, lanzador, uninstall, update) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
 
 ```bash
 bash tests/run-tests.sh
@@ -17,7 +17,7 @@ En estas pruebas solo se inspecciona lo que produce el sistema, no el código in
 | Suite | Aserciones | Qué verifica |
 |---|---|---|
 | `blackbox_setup.test.sh` | 26 | `setup.sh` termina con código 0, crea las 13 carpetas del árbol, genera `studio-portable.sh` (ejecutable), `studio.properties` y el estado `AndroidSdkPathStore.xml`; extrae `bin/studio.sh` desde un tar.gz mínimo de prueba. **Casos hostiles**: rechaza tar con rutas `../` (no escribe fuera del destino) y con rutas absolutas (no extrae nada); falla sin `--dest` con código 1 y documenta `--dest` en la ayuda. |
-| `blackbox_launcher.test.sh` | 14 | Con un `bin/studio` y un `bin/studio.sh` falsos, el lanzador **prefiere el launcher nativo** `bin/studio` cuando existe y **cae al script** `bin/studio.sh` si no; ejecuta el binario del destino correcto y las variables de entorno exportadas apuntan a `sdk/`, `avd/`, `.gradle/`, `studio.properties`. También crea el symlink `$HOME/Android/Sdk`. |
+| `blackbox_launcher.test.sh` | 16 | Con un `bin/studio` y un `bin/studio.sh` falsos, el lanzador **prefiere el launcher nativo** `bin/studio` cuando existe y **cae al script** `bin/studio.sh` si no; ejecuta el binario del destino correcto y las variables de entorno exportadas apuntan a `sdk/`, `avd/`, `.gradle/`, `studio.properties`. También crea el symlink `$HOME/Android/Sdk` y, **invocado a través de un symlink** (atajo CLI), resuelve `BASE` al destino real. |
 | `blackbox_uninstall.test.sh` | 10 | `uninstall.sh` elimina el destino completo, con `--keep-binaries` conserva `android-studio/` y `sdk/`, retira el symlink que apunta a este destino, respeta symlinks de otros destinos, falla sin `--dest` con código 1 y `--help` documenta `--keep-binaries` y `--dest`. |
 | `blackbox_update.test.sh` | 20 | El update híbrido (página oficial + `version.json`) resuelve url+sha256+versión; verifica sha256 antes de activar (update con sha inválido rechazado, versión intacta); rollback atómico restaura `.prev`; degradación controlada sin red/curl/flock; `installed_version` prioriza `.studio-version` (sin loop en patch releases). |
 
@@ -25,7 +25,7 @@ En estas pruebas solo se inspecciona lo que produce el sistema, no el código in
 
 | Suite | Aserciones | Qué verifica |
 |---|---|---|
-| `whitebox_content.test.sh` | 24 | Los templates usan `idea.home.path` y `BASH_SOURCE` (rutas relativas, nada de usuarios con nombre fijo), el lanzador usa `ln -sfn` y `exec` y **resuelve el launcher nativo `bin/studio` con fallback `bin/studio.sh`**, `setup.sh` es idempotente (mismo hash en dos corridas) y documenta sus opciones en `--help`; `stable_url` no fija versión alguna; **invariante multi-distro**: el código no referencia gestores de paquete (dnf, apt, pacman, zypper, rpm, emerge, flatpak). |
+| `whitebox_content.test.sh` | 25 | Los templates usan `idea.home.path` y `BASH_SOURCE` (rutas relativas, nada de usuarios con nombre fijo), el lanzador usa `ln -sfn`, `exec` y **`readlink -f` al derivar `BASE` (funciona vía symlink)** y **resuelve el launcher nativo `bin/studio` con fallback `bin/studio.sh`**, `setup.sh` es idempotente (mismo hash en dos corridas) y documenta sus opciones en `--help`; `stable_url` no fija versión alguna; **invariante multi-distro**: el código no referencia gestores de paquete (dnf, apt, pacman, zypper, rpm, emerge, flatpak). |
 | `whitebox_security.test.sh` | 14 | Dependabot rastrea `github-actions`; `code-scan.yml` usa ShellCheck con `security-events: write`; `ci.yml` corre `tests/run-tests.sh`; `setup.sh` extrae con `--no-same-owner` y valida el tar (`tar -tzf`); `sha256sum` presente en lib; sin tokens ni claves en el árbol (`grep -r` nativo, sin `git`); `version.json` tiene versión numérica. |
 
 ## Prueba de regresión contra producción
@@ -34,6 +34,6 @@ La lógica del template `src/studio-portable.sh.in` se comparó con el lanzador 
 
 ## Composición de la suite
 
-`tests/run-tests.sh` ejecuta las seis suites en orden y agrega el resultado. El conteo global (108) se mantiene actualizado en `README.md` y `05-qa.md`.
+`tests/run-tests.sh` ejecuta las seis suites en orden y agrega el resultado. El conteo global (111) se mantiene actualizado en `README.md` y `05-qa.md`.
 
 > Over to you: si encontrás un escenario no cubierto (nueva flag, nuevo caso hostil, regresión), escribí la aserción en la suite correspondiente y agregala a la tabla — el costo de probar es más bajo que el costo de romper silenciosamente en producción.

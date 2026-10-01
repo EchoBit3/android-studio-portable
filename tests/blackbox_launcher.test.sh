@@ -85,6 +85,15 @@ assert_true "printf '%s' \"\$out_fb\" | grep -q 'LAUNCHER=script'" \
     "sin bin/studio el lanzador usa bin/studio.sh como fallback"
 rm "$FAKE_TAR_BASE/android-studio/bin/studio"
 
+# 3c. Invocado a través de un symlink (atajo CLI), BASE resuelve al destino real
+mkdir -p "$TMP_ROOT/bin"
+ln -s "$FAKE_DEST/studio-portable.sh" "$TMP_ROOT/bin/studio"
+# shellcheck disable=SC2034  # out_ln se consume vía eval dentro de assert_true
+out_ln="$(HOME="$FAKE_HOME" PORTABLE_NO_UPDATE=1 bash "$TMP_ROOT/bin/studio" 2>&1)"
+assert_eq "$?" "0" "el lanzador invocado via symlink termina con código 0"
+assert_true "printf '%s' \"\$out_ln\" | grep -q 'IDE_HOME=$FAKE_DEST/android-studio'" \
+    "via symlink el lanzador resuelve BASE al destino real"
+
 HOME="$SAVED_HOME"
 
 # 4. El lanzador genera el symlink $HOME/Android/Sdk -> $BASE/sdk (idempotente)
