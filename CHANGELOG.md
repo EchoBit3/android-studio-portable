@@ -1,6 +1,14 @@
 # Changelog
 
-Versión actual: `0.1.1` (ver `VERSION`).
+Versión actual: `0.2.0` (ver `VERSION`).
+
+## 2026-09-24 — v0.2.0 (launcher nativo con fallback)
+
+- **Launcher nativo**: `studio-portable.sh` ahora prefiere `bin/studio` (ELF, launcher nativo recomendado por JetBrains desde la 2024.2) y cae a `bin/studio.sh` (script legacy) solo si el nativo no existe. Motivo: arranque más rápido, mejor integración con Wayland y desaparición del aviso *"Consider switching to a native launcher"*.
+- **Preflight del update**: `update_ide` acepta el árbol si tiene `bin/studio` **o** `bin/studio.sh` ejecutable; `setup.sh` (idempotencia) mismo criterio.
+- **Pruebas**: `blackbox_launcher` agrega preferencia nativa (`LAUNCHER=native`) y fallback (`LAUNCHER=script`) 11→14; `whitebox_content` agrega invariantes de resolución de launcher 21→23. Total **107** aserciones.
+- **Docs**: README, `02-pruebas.md`, `05-qa.md` (F3/F4b, S4, E3) y diagrama `portable-flujo.md` actualizados con el launcher nativo y sus citas oficiales (SUPPORT-A-56 y guía CLI de JetBrains).
+- Suites vigentes: blackbox_setup 26 · blackbox_launcher 14 · blackbox_uninstall 10 · blackbox_update 20 · whitebox_content 23 · whitebox_security 14 = **107**.
 
 ## 2026-09-24 — v0.1.1 (fix loop de update en instalaciones patch)
 
