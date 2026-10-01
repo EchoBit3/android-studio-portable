@@ -7,6 +7,7 @@ Versión actual: `0.2.1` (ver `VERSION`).
 - **CI con matriz de distros**: además de `ubuntu-latest`, la suite corre en contenedores de **CachyOS** (imagen oficial `cachyos/cachyos`), **Arch**, **Fedora** y **Debian** (`fail-fast: false` para que cada familia informe por separado).
 - **Invariante multi-distro**: `whitebox_content` verifica que el código ejecutable (`setup.sh`, `uninstall.sh`, `src/`) no referencie gestores de paquetes (`dnf`, `apt-get`, `pacman`, `zypper`, `rpm`, `emerge`, `flatpak`) — 23→24 aserciones. Total **108**.
 - **Docs**: README y `01-diseno`/`02-pruebas`/`03-entorno`/`05-qa` pasan de "validado en Fedora" a matriz multi-distro con evidencia (CachyOS validado en contenedor: 108/108 PASS).
+- **Aserción de secretos sin `git`**: `whitebox_security` usa `grep -r` nativo (excluye `.git` y `tests/`) en vez de `git grep` condicional — las 5 distros corren **108/108** sin instalar nada (antes: 107 en Arch/Fedora/Debian por la aserción condicionada a `git`).
 - Suites vigentes: blackbox_setup 26 · blackbox_launcher 14 · blackbox_uninstall 10 · blackbox_update 20 · whitebox_content 24 · whitebox_security 14 = **108**.
 
 ## 2026-09-24 — v0.2.0 (launcher nativo con fallback)

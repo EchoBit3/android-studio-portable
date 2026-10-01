@@ -26,7 +26,7 @@ En estas pruebas solo se inspecciona lo que produce el sistema, no el código in
 | Suite | Aserciones | Qué verifica |
 |---|---|---|
 | `whitebox_content.test.sh` | 24 | Los templates usan `idea.home.path` y `BASH_SOURCE` (rutas relativas, nada de usuarios con nombre fijo), el lanzador usa `ln -sfn` y `exec` y **resuelve el launcher nativo `bin/studio` con fallback `bin/studio.sh`**, `setup.sh` es idempotente (mismo hash en dos corridas) y documenta sus opciones en `--help`; `stable_url` no fija versión alguna; **invariante multi-distro**: el código no referencia gestores de paquete (dnf, apt, pacman, zypper, rpm, emerge, flatpak). |
-| `whitebox_security.test.sh` | 14 | Dependabot rastrea `github-actions`; `code-scan.yml` usa ShellCheck con `security-events: write`; `ci.yml` corre `tests/run-tests.sh`; `setup.sh` extrae con `--no-same-owner` y valida el tar (`tar -tzf`); `sha256sum` presente en lib; sin tokens ni claves en el árbol (grep); `version.json` tiene versión numérica. |
+| `whitebox_security.test.sh` | 14 | Dependabot rastrea `github-actions`; `code-scan.yml` usa ShellCheck con `security-events: write`; `ci.yml` corre `tests/run-tests.sh`; `setup.sh` extrae con `--no-same-owner` y valida el tar (`tar -tzf`); `sha256sum` presente en lib; sin tokens ni claves en el árbol (`grep -r` nativo, sin `git`); `version.json` tiene versión numérica. |
 
 ## Prueba de regresión contra producción
 
