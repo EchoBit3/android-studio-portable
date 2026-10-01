@@ -1,6 +1,13 @@
 # Changelog
 
-Versión actual: `0.2.2` (ver `VERSION`).
+Versión actual: `0.2.3` (ver `VERSION`).
+
+## 2026-10-01 — v0.2.3 (lanzador vía symlink + nota de duración del update)
+
+- **Lanzador invocable vía symlink**: `BASE` se deriva con `readlink -f "${BASH_SOURCE[0]}"` (mismo patrón que `setup.sh`) — un atajo `~/bin/studio -> …/studio-portable.sh` ahora resuelve al destino real en vez de tomar `~/bin` como base. Antes el atajo quedaba roto.
+- **Pruebas**: `blackbox_launcher` invoca el lanzador a través de un symlink y verifica `BASE` (14→16); `whitebox_content` exige `readlink -f` en el template (24→25). Total **111**.
+- **Docs**: README y FAQ `00-intro` explican que la primera actualización descarga ~1,5 GB y puede tardar varios minutos (se retoma si se interrumpe; no es un bloqueo). Conteos 108→111 en `01-diseno`/`02-pruebas`/`03-entorno`; D4 de `05-qa` cubre la invocación vía symlink.
+- Suites vigentes: blackbox_setup 26 · blackbox_launcher 16 · blackbox_uninstall 10 · blackbox_update 20 · whitebox_content 25 · whitebox_security 14 = **111**.
 
 ## 2026-10-01 — v0.2.2 (seguridad en español + alerta SC2034)
 

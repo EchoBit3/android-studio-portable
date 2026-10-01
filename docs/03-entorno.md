@@ -8,13 +8,13 @@ La máquina física principal es Fedora 44 KDE (i3-1220P, 16 GiB RAM, KVM). Adem
 
 | Distro | Familia | bash | Cómo se validó | Resultado |
 |---|---|---|---|---|
-| Fedora 44 | Fedora | 5.3.9 | máquina física + contenedor + CI | **108/108 PASS** |
-| CachyOS | Arch | 5.3.20 | contenedor `cachyos/cachyos` + CI | **108/108 PASS** |
-| Arch Linux | Arch | 5.3.20 | contenedor `archlinux` + CI | **108/108 PASS** |
-| Ubuntu | Debian | 5.x | CI (`ubuntu-latest`) | **108/108 PASS** |
-| Debian stable | Debian | 5.x | contenedor `debian:stable-slim` + CI | **108/108 PASS** |
+| Fedora 44 | Fedora | 5.3.9 | máquina física + contenedor + CI | **111/111 PASS** |
+| CachyOS | Arch | 5.3.20 | contenedor `cachyos/cachyos` + CI | **111/111 PASS** |
+| Arch Linux | Arch | 5.3.20 | contenedor `archlinux` + CI | **111/111 PASS** |
+| Ubuntu | Debian | 5.x | CI (`ubuntu-latest`) | **111/111 PASS** |
+| Debian stable | Debian | 5.x | contenedor `debian:stable-slim` + CI | **111/111 PASS** |
 
-La suite no requiere `git`: la aserción de secretos usa `grep -r` nativo (excluye `.git` y `tests/`), así que las 5 distros corren las mismas 108 sin instalar nada.
+La suite no requiere `git`: la aserción de secretos usa `grep -r` nativo (excluye `.git` y `tests/`), así que las 5 distros corren las mismas 111 sin instalar nada.
 
 El invariante que garantiza la portabilidad está en `whitebox_content.test.sh`: el código ejecutable (`setup.sh`, `uninstall.sh`, `src/`) **no referencia ningún gestor de paquetes** (`dnf`, `apt-get`, `pacman`, `zypper`, `rpm`, `emerge`, `flatpak`). Únicas dependencias: `bash 5.x`, `tar`, `curl` o `wget`, `flock`, `sha256sum`.
 
