@@ -206,3 +206,13 @@ MIT — Port en `LICENSE`.
 ---
 
 > ¿Sirve para tu caso? Cloná el repo, corré `bash tests/run-tests.sh` y probá `./setup.sh --dest ...`. ¿Encontraste un entorno donde no anda o una mejora? Abrí un issue o aportá la prueba: la base está en `docs/05-qa.md` y el cómo en `docs/04-fallos.md`.
+
+## Emulador (opcional)
+
+Para agregar el emulador y una imagen de sistema al SDK portable, ejecuta:
+
+```bash
+./install-emulator.sh /ruta/a/AndroidStudio-Portable
+```
+
+Este script descarga las command-line tools si faltan, acepta licencias e instala el emulador, la plataforma, las build-tools y una imagen de sistema.
