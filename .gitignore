@@ -31,3 +31,7 @@ android-studio.prev/
 __pycache__/
 .DS_Store
 .idea/
+# Arnes del agente (no subir)
+init.sh
+agents.md
+memory.md
