@@ -8,16 +8,16 @@ La máquina física principal es Fedora 44 KDE (i3-1220P, 16 GiB RAM, KVM). Adem
 
 | Distro | Familia | bash | Cómo se validó | Resultado |
 |---|---|---|---|---|
-| Zorin OS 18.1 | Ubuntu/Debian | 5.2.21 | máquina local de revisión (2026-11-01) | **143/143 PASS** (v0.3.1) |
+| Zorin OS 18.1 | Ubuntu/Debian | 5.2.21 | máquina local de revisión (2026-11-01) | **152/152 PASS** (v0.3.1) |
 | Fedora 44 | Fedora | 5.3.9 | máquina física + contenedor + CI | **111/111 PASS** |
 | CachyOS | Arch | 5.3.20 | contenedor `cachyos/cachyos` + CI | **111/111 PASS** |
 | Arch Linux | Arch | 5.3.20 | contenedor `archlinux` + CI | **111/111 PASS** |
 | Ubuntu | Debian | 5.x | CI (`ubuntu-latest`) | **111/111 PASS** |
 | Debian stable | Debian | 5.x | contenedor `debian:stable-slim` + CI | **111/111 PASS** |
 
-Las filas con **111/111** corresponden a la validación multi-distro de v0.2.3. La v0.3.0 sumó la suite de emulador (132 aserciones); la v0.3.1 la dejó en 143. Se validó localmente en Zorin OS 18.1 y el CI re-verifica los 5 contenedores en cada push.
+Las filas con **111/111** corresponden a la validación multi-distro de v0.2.3. La v0.3.0 sumó la suite de emulador (132 aserciones); la v0.3.1 la dejó en 152 y agregó la prueba de actualización real seguida de traslado de la instalación. Se validó localmente en Zorin OS 18.1 y el CI re-verifica los 5 contenedores en cada push.
 
-La suite no requiere `git`: la aserción de secretos usa `grep -r` nativo (excluye `.git` y `tests/`), así que las distros corren la misma batería sin instalar nada (111 en v0.2.3; 132 en v0.3.0; 143 desde v0.3.1).
+La suite no requiere `git`: la aserción de secretos usa `grep -r` nativo (excluye `.git` y `tests/`), así que las distros corren la misma batería sin instalar nada (111 en v0.2.3; 132 en v0.3.0; 152 desde v0.3.1).
 
 El invariante que garantiza la portabilidad está en `whitebox_content.test.sh`: el código ejecutable (`setup.sh`, `uninstall.sh`, `install-emulator.sh`, `src/`) **no referencia ningún gestor de paquetes** (`dnf`, `apt-get`, `pacman`, `zypper`, `rpm`, `emerge`, `flatpak`). Únicas dependencias: `bash 5.x`, `tar`, `curl` o `wget`, `flock`, `sha256sum`; para descargar cmdline-tools, `unzip` (solo si no se pasa `--sdkmanager`).
 

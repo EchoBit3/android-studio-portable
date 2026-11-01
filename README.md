@@ -79,7 +79,22 @@ Después el emulador se lanza desde el IDE o con:
 
 ## Actualización
 
-El lanzador revisa si hay una versión nueva de Android Studio y la instala si corresponde: descarga, verifica sha256 y hace un intercambio atómico con rollback si la versión nueva no arranca. Google es la fuente principal; `version.json` del repo es el respaldo si la página cambia de formato.
+El lanzador revisa si hay una versión nueva de Android Studio y la instala si corresponde: descarga, verifica sha256 y hace un intercambio atómico. Si la versión nueva no arranca en los primeros 60 segundos, restaura la anterior sola.
+
+La carpeta sigue siendo portable después de actualizar: podés moverla a otra ruta o copiarla a otra máquina y el lanzador reubica el SDK y las cachés donde esté. Lo único que se toca fuera del directorio es el symlink `$HOME/Android/Sdk`, que se vuelve a crear apuntando a la ruta nueva.
+
+La versión anterior queda en `<dest>/android-studio.prev` (~3,5 GB) por si querés volver atrás a mano:
+
+```bash
+# volver a la versión anterior
+source "$HOME/AndroidStudio-Portable/lib-portable.sh"
+rollback "$HOME/AndroidStudio-Portable"
+
+# o liberar el espacio cuando ya estés conforme
+rm -rf "$HOME/AndroidStudio-Portable/android-studio.prev"
+```
+
+Para no buscar actualizaciones en una sesión puntual: `PORTABLE_NO_UPDATE=1`.
 
 ## Pruebas
 
@@ -87,7 +102,7 @@ El lanzador revisa si hay una versión nueva de Android Studio y la instala si c
 bash tests/run-tests.sh
 ```
 
-143 aserciones en 7 suites (caja negra y blanca). No usan red ni instalan nada: trabajan con `HOME` y destinos temporales falsos.
+152 aserciones en 7 suites (caja negra y blanca). No usan red ni instalan nada: trabajan con `HOME` y destinos temporales falsos.
 
 ## Desinstalación
 

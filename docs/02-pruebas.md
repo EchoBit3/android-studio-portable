@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Siete suites en `tests/` (143 aserciones totales en estado verde): 5 de caja negra (setup, lanzador, uninstall, update, emulador) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
+Siete suites en `tests/` (152 aserciones totales en estado verde): 5 de caja negra (setup, lanzador, uninstall, update, emulador) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
 
 ```bash
 bash tests/run-tests.sh
@@ -19,7 +19,7 @@ En estas pruebas solo se inspecciona lo que produce el sistema, no el código in
 | `blackbox_setup.test.sh` | 31 | `setup.sh` termina con código 0, crea las 13 carpetas del árbol, genera `studio-portable.sh` (ejecutable), `studio.properties` y el estado `AndroidSdkPathStore.xml`; extrae `bin/studio.sh` desde un tar.gz mínimo de prueba. **Casos hostiles**: rechaza tar con rutas `../` (no escribe fuera del destino) y con rutas absolutas (no extrae nada); falla sin `--dest` con código 1 y documenta `--dest` en la ayuda. **Integridad**: con `PORTABLE_IDE_SHA256` correcto instala y avisa «sha256 del IDE verificado»; con un sha incorrecto falla con código 1 y no extrae el IDE. |
 | `blackbox_launcher.test.sh` | 16 | Con un `bin/studio` y un `bin/studio.sh` falsos, el lanzador **prefiere el launcher nativo** `bin/studio` cuando existe y **cae al script** `bin/studio.sh` si no; ejecuta el binario del destino correcto y las variables de entorno exportadas apuntan a `sdk/`, `avd/`, `.gradle/`, `studio.properties`. También crea el symlink `$HOME/Android/Sdk` y, **invocado a través de un symlink** (atajo CLI), resuelve `BASE` al destino real. |
 | `blackbox_uninstall.test.sh` | 10 | `uninstall.sh` elimina el destino completo, con `--keep-binaries` conserva `android-studio/` y `sdk/`, retira el symlink que apunta a este destino, respeta symlinks de otros destinos, falla sin `--dest` con código 1 y `--help` documenta `--keep-binaries` y `--dest`. |
-| `blackbox_update.test.sh` | 20 | El update híbrido (página oficial + `version.json`) resuelve url+sha256+versión; verifica sha256 antes de activar (update con sha inválido rechazado, versión intacta); rollback atómico restaura `.prev`; degradación controlada sin red/curl/flock; `installed_version` prioriza `.studio-version` (sin loop en patch releases). |
+| `blackbox_update.test.sh` | 29 | El update híbrido (página oficial + `version.json`) resuelve url+sha256+versión; verifica sha256 antes de activar (update con sha inválido rechazado, versión intacta); rollback atómico restaura `.prev`; degradación controlada sin red/curl/flock; `installed_version` prioriza `.studio-version` (sin loop en patch releases). |
 | `blackbox_install_emulator.test.sh` | 22 | `install-emulator.sh` falla sin `--dest` y sin IDE, documenta sus flags y, con un `sdkmanager`/`avdmanager` falsos, instala `emulator` + `platform-tools` + la system image pedida contra `<dest>/sdk`, acepta licencias, exporta el entorno portable (`ANDROID_AVD_HOME`, `ANDROID_USER_HOME`, `JAVA_HOME` del JBR) y crea el AVD con nombre/imagen/perfil. `--sdkmanager` inexistente falla controlado y, si falta `unzip`, avisa **antes** de descargar las cmdline-tools. |
 
 ## Caja blanca — contenido e invariantes
@@ -35,6 +35,6 @@ La lógica del template `src/studio-portable.sh.in` se comparó con el lanzador 
 
 ## Composición de la suite
 
-`tests/run-tests.sh` ejecuta las siete suites en orden y agrega el resultado. El conteo global (143) se mantiene actualizado en `README.md` y `05-qa.md`.
+`tests/run-tests.sh` ejecuta las siete suites en orden y agrega el resultado. El conteo global (152) se mantiene actualizado en `README.md` y `05-qa.md`.
 
 > Over to you: si encontrás un escenario no cubierto (nueva flag, nuevo caso hostil, regresión), escribí la aserción en la suite correspondiente y agregala a la tabla — el costo de probar es más bajo que el costo de romper silenciosamente en producción.

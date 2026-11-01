@@ -1,6 +1,14 @@
 # Changelog
 
-Versión actual: `0.3.1` (ver `VERSION`).
+Versión actual: `0.3.2` (ver `VERSION`).
+
+## 2026-11-01 — v0.3.2 (actualizar no rompe la portabilidad)
+
+- **Nueva prueba del invariante que importa al actualizar**: después de una actualización, la instalación completa se mueve a otra ruta con otro `$HOME` y el IDE tiene que seguir arrancando. `blackbox_update.test.sh` 20→29: la actualización se aplica, el IDE nuevo arranca, la versión anterior queda para rollback, el lanzador reescribe `AndroidSdkPathStore.xml` con la ruta nueva, recrea `$HOME/Android/Sdk` y el árbol portable (`sdk/`, `avd/`, `.gradle/`) sobrevive al traslado. Total **143→152**.
+- **`version.json` (respaldo del update) actualizado a la estable vigente** `2026.2.2.8` con su sha256 real: si la página de Google cambia de formato, el respaldo ya no queda viejo y el lanzador sigue pudiendo actualizar.
+- **README**: la sección de actualización explica el rollback manual (`rollback` de `lib-portable.sh`) y cómo liberar `android-studio.prev` (~3,5 GB) cuando ya no se necesita.
+- **Docs**: `01-diseno`, `02-pruebas` y `03-entorno` al conteo 152; `05-qa` suma D8 (una actualización no rompe la portabilidad).
+- Verificado en vivo: actualización real `2026.2.1 → 2026.2.2` (descarga oficial, sha256 verificado, swap atómico), arranque del IDE actualizado, traslado de la instalación a otra ruta con otro `$HOME` y rollback a la versión anterior.
 
 ## 2026-11-01 — v0.3.1 (requisitos claros y aviso temprano de dependencias)
 
