@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Launcher portable de Android Studio. Generado por setup.sh; BASE se deriva en runtime.
+# readlink -f resuelve symlinks: el atajo ~/bin/studio puede apuntar aquí.
+BASE="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+
+# JetBrains recomienda el launcher nativo bin/studio (2024.2+); studio.sh es el
+# script legacy. Preferimos el nativo y caemos al script si no está disponible.
+ide_launcher() {
+    if [ -x "$BASE/android-studio/bin/studio" ]; then
+        printf '%s\n' "$BASE/android-studio/bin/studio"
+    else
+        printf '%s\n' "$BASE/android-studio/bin/studio.sh"
+    fi
+}
+
+export ANDROID_SDK_ROOT="$BASE/sdk"
+export ANDROID_HOME="$BASE/sdk"
+export ANDROID_USER_HOME="$BASE/.android"
+export ANDROID_AVD_HOME="$BASE/avd"
+export GRADLE_USER_HOME="$BASE/.gradle"
+
+export XDG_CONFIG_HOME="$BASE/.config"
+export XDG_CACHE_HOME="$BASE/.cache"
+export XDG_DATA_HOME="$BASE/.local/share"
+
+export TMPDIR="$BASE/tmp"
+export TEMP="$BASE/tmp"
+export TMP="$BASE/tmp"
+
+export STUDIO_PROPERTIES="$BASE/studio.properties"
+
+SDK_STATE="$BASE/AndroidStudioConfig/options/AndroidSdkPathStore.xml"
+mkdir -p "$(dirname "$SDK_STATE")"
+cat > "$SDK_STATE" << XML
+<application>
+  <component name="AndroidSdkPathStore">
+    <option name="androidSdkAbsolutePath" value="$BASE/sdk" />
+  </component>
+</application>
+XML
+
+mkdir -p "$HOME/Android"
+ln -sfn "$BASE/sdk" "$HOME/Android/Sdk"
+
+# Actualización: Google es la fuente, el repo es el respaldo si Google cambia formato.
+PORTABLE_NO_UPDATE="${PORTABLE_NO_UPDATE:-0}"
+if [ "${PORTABLE_NO_UPDATE:-0}" != "1" ] && [ -f "$BASE/lib-portable.sh" ]; then
+    # shellcheck source=lib-portable.sh
+    source "$BASE/lib-portable.sh"
+    check_update "$BASE"
+    UPDATE_APPLIED=$?
+fi
+
+if [ "${UPDATE_APPLIED:-0}" != "10" ]; then
+    exec "$(ide_launcher)" "$@"
+fi
+
+# La versión nueva debe sobrevivir 60 s. Si no, rollback y relanza la anterior.
+"$(ide_launcher)" "$@" &
+IDE_PID=$!
+IDE_END=$((SECONDS + 60))
+while [ "$SECONDS" -lt "$IDE_END" ]; do
+    if ! kill -0 "$IDE_PID" 2>/dev/null; then
+        break
+    fi
+    sleep 2
+done
+if ! kill -0 "$IDE_PID" 2>/dev/null; then
+    wait "$IDE_PID"
+    IDE_RC=$?
+    if [ "$IDE_RC" -ne 0 ]; then
+        if rollback "$BASE"; then
+            printf 'La versión nueva no arrancó; se restauró la anterior.\n' >&2
+        fi
+        exec "$(ide_launcher)" "$@"
+    fi
+    exit "$IDE_RC"
+fi
+
+# Sobrevivió la ventana de vigilancia: sigue corriendo y el lanzador termina.
+exit 0
