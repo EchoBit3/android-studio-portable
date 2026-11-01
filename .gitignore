@@ -1,0 +1,39 @@
+# Binarios y datos pesados nunca van al repo
+android-studio/
+sdk/
+avd/
+.gradle/
+.android/
+.config/
+.cache/
+.local/
+AndroidStudioConfig/
+AndroidStudioSystem/
+AndroidStudioPlugins/
+AndroidStudioLogs/
+tmp/
+*.log
+# Binarios, secretos y datos pesados nunca van al repo
+*.tar.gz
+*.tgz
+*.pem
+*.key
+*.p12
+*.jks
+.env
+**/.env.*
+stage/
+update-stage/
+android-studio.prev/
+
+# Artefactos de prueba y del sistema
+*.pyc
+__pycache__/
+.DS_Store
+.idea/
+
+# Arnés del agente (personal, no subir)
+init.sh
+agents.md
+agent.md
+memory.md
