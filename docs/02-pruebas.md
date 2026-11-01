@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Siete suites en `tests/` (132 aserciones totales en estado verde): 5 de caja negra (setup, lanzador, uninstall, update, emulador) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
+Siete suites en `tests/` (143 aserciones totales en estado verde): 5 de caja negra (setup, lanzador, uninstall, update, emulador) y 2 de caja blanca (contenido e invariantes, seguridad). Se ejecutan sin instalar nada y sin tocar el sistema real, usando `HOME` y directorios temporales falsos.
 
 ```bash
 bash tests/run-tests.sh
@@ -16,17 +16,17 @@ En estas pruebas solo se inspecciona lo que produce el sistema, no el código in
 
 | Suite | Aserciones | Qué verifica |
 |---|---|---|
-| `blackbox_setup.test.sh` | 26 | `setup.sh` termina con código 0, crea las 13 carpetas del árbol, genera `studio-portable.sh` (ejecutable), `studio.properties` y el estado `AndroidSdkPathStore.xml`; extrae `bin/studio.sh` desde un tar.gz mínimo de prueba. **Casos hostiles**: rechaza tar con rutas `../` (no escribe fuera del destino) y con rutas absolutas (no extrae nada); falla sin `--dest` con código 1 y documenta `--dest` en la ayuda. |
+| `blackbox_setup.test.sh` | 31 | `setup.sh` termina con código 0, crea las 13 carpetas del árbol, genera `studio-portable.sh` (ejecutable), `studio.properties` y el estado `AndroidSdkPathStore.xml`; extrae `bin/studio.sh` desde un tar.gz mínimo de prueba. **Casos hostiles**: rechaza tar con rutas `../` (no escribe fuera del destino) y con rutas absolutas (no extrae nada); falla sin `--dest` con código 1 y documenta `--dest` en la ayuda. **Integridad**: con `PORTABLE_IDE_SHA256` correcto instala y avisa «sha256 del IDE verificado»; con un sha incorrecto falla con código 1 y no extrae el IDE. |
 | `blackbox_launcher.test.sh` | 16 | Con un `bin/studio` y un `bin/studio.sh` falsos, el lanzador **prefiere el launcher nativo** `bin/studio` cuando existe y **cae al script** `bin/studio.sh` si no; ejecuta el binario del destino correcto y las variables de entorno exportadas apuntan a `sdk/`, `avd/`, `.gradle/`, `studio.properties`. También crea el symlink `$HOME/Android/Sdk` y, **invocado a través de un symlink** (atajo CLI), resuelve `BASE` al destino real. |
 | `blackbox_uninstall.test.sh` | 10 | `uninstall.sh` elimina el destino completo, con `--keep-binaries` conserva `android-studio/` y `sdk/`, retira el symlink que apunta a este destino, respeta symlinks de otros destinos, falla sin `--dest` con código 1 y `--help` documenta `--keep-binaries` y `--dest`. |
 | `blackbox_update.test.sh` | 20 | El update híbrido (página oficial + `version.json`) resuelve url+sha256+versión; verifica sha256 antes de activar (update con sha inválido rechazado, versión intacta); rollback atómico restaura `.prev`; degradación controlada sin red/curl/flock; `installed_version` prioriza `.studio-version` (sin loop en patch releases). |
-| `blackbox_install_emulator.test.sh` | 19 | `install-emulator.sh` falla sin `--dest` y sin IDE, documenta sus flags y, con un `sdkmanager`/`avdmanager` falsos, instala `emulator` + `platform-tools` + la system image pedida contra `<dest>/sdk`, acepta licencias, exporta el entorno portable (`ANDROID_AVD_HOME`, `ANDROID_USER_HOME`, `JAVA_HOME` del JBR) y crea el AVD con nombre/imagen/perfil. `--sdkmanager` inexistente falla controlado. |
+| `blackbox_install_emulator.test.sh` | 22 | `install-emulator.sh` falla sin `--dest` y sin IDE, documenta sus flags y, con un `sdkmanager`/`avdmanager` falsos, instala `emulator` + `platform-tools` + la system image pedida contra `<dest>/sdk`, acepta licencias, exporta el entorno portable (`ANDROID_AVD_HOME`, `ANDROID_USER_HOME`, `JAVA_HOME` del JBR) y crea el AVD con nombre/imagen/perfil. `--sdkmanager` inexistente falla controlado y, si falta `unzip`, avisa **antes** de descargar las cmdline-tools. |
 
 ## Caja blanca — contenido e invariantes
 
 | Suite | Aserciones | Qué verifica |
 |---|---|---|
-| `whitebox_content.test.sh` | 27 | Los templates usan `idea.home.path` y `BASH_SOURCE` (rutas relativas, nada de usuarios con nombre fijo), el lanzador usa `ln -sfn`, `exec` y **`readlink -f` al derivar `BASE` (funciona vía symlink)** y **resuelve el launcher nativo `bin/studio` con fallback `bin/studio.sh`**, `setup.sh` es idempotente (mismo hash en dos corridas) y documenta sus opciones en `--help`; `stable_url` no fija versión alguna; `install-emulator.sh` descarga cmdline-tools oficiales de Google y permite fijar sha256 por env; **invariante multi-distro**: el código (incluido `install-emulator.sh`) no referencia gestores de paquete (dnf, apt, pacman, zypper, rpm, emerge, flatpak). |
+| `whitebox_content.test.sh` | 30 | Los templates usan `idea.home.path` y `BASH_SOURCE` (rutas relativas, nada de usuarios con nombre fijo), el lanzador usa `ln -sfn`, `exec` y **`readlink -f` al derivar `BASE` (funciona vía symlink)** y **resuelve el launcher nativo `bin/studio` con fallback `bin/studio.sh`**, `setup.sh` es idempotente (mismo hash en dos corridas) y documenta sus opciones en `--help`; `stable_url` no fija versión alguna; `install-emulator.sh` descarga cmdline-tools oficiales de Google y permite fijar sha256 por env; **invariante multi-distro**: el código (incluido `install-emulator.sh`) no referencia gestores de paquete (dnf, apt, pacman, zypper, rpm, emerge, flatpak). |
 | `whitebox_security.test.sh` | 14 | Dependabot rastrea `github-actions`; `code-scan.yml` usa ShellCheck con `security-events: write`; `ci.yml` corre `tests/run-tests.sh`; `setup.sh` extrae con `--no-same-owner` y valida el tar (`tar -tzf`); `sha256sum` presente en lib; sin tokens ni claves en el árbol (`grep -r` nativo, sin `git`); `version.json` tiene versión numérica. |
 
 ## Prueba de regresión contra producción
@@ -35,6 +35,6 @@ La lógica del template `src/studio-portable.sh.in` se comparó con el lanzador 
 
 ## Composición de la suite
 
-`tests/run-tests.sh` ejecuta las siete suites en orden y agrega el resultado. El conteo global (132) se mantiene actualizado en `README.md` y `05-qa.md`.
+`tests/run-tests.sh` ejecuta las siete suites en orden y agrega el resultado. El conteo global (143) se mantiene actualizado en `README.md` y `05-qa.md`.
 
 > Over to you: si encontrás un escenario no cubierto (nueva flag, nuevo caso hostil, regresión), escribí la aserción en la suite correspondiente y agregala a la tabla — el costo de probar es más bajo que el costo de romper silenciosamente en producción.

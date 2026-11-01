@@ -76,6 +76,38 @@ Registro de los fallos encontrados durante el desarrollo y su solución. Ninguno
 
 **Cobertura**: `05-build-gradle` del bot, hoy PASS.
 
+## 2026-11-01
+
+### F8. El instalador de emulador descargaba 150 MB antes de avisar que faltaba `unzip`
+
+**Síntoma**: al correr `install-emulator.sh` en un sistema sin `unzip`, el script bajaba completo el zip de cmdline-tools y recién al final fallaba con `Falta unzip`.
+
+**Causa**: el chequeo de `unzip` estaba después de la descarga, dentro de `install_cmdline_tools`.
+
+**Solución**: la dependencia se valida **antes** de resolver la URL y descargar (`install-emulator.sh`), con mensaje que indica cómo instalarla o usar `--sdkmanager`.
+
+**Cobertura**: `blackbox_install_emulator.test.sh` — sin `unzip` falla con código 1, el mensaje nombra la dependencia y no se invoca `curl`.
+
+### F9. La primera instalación no verificaba el sha256 del IDE
+
+**Síntoma**: `setup.sh` descargaba el tar.gz de Android Studio y lo extraía sin comparar checksum; solo `update_ide` verificaba. La documentación decía que se verificaba siempre.
+
+**Causa**: la verificación se agregó en el flujo de actualización (`src/lib-portable.sh`) y no se replicó en el alta inicial de `setup.sh`, que además tenía su propia copia de `stable_url`.
+
+**Solución**: `setup.sh` toma url y sha256 juntos de la página oficial (`page_manifest`), compara con `sha256sum` antes de extraer y descarta la descarga si no coincide. Con `--tar` propio el checksum se fija con `PORTABLE_IDE_SHA256`. Se eliminó la `stable_url` duplicada.
+
+**Cobertura**: `blackbox_setup.test.sh` — sha256 correcto instala y avisa; sha256 incorrecto falla con código 1, no extrae el IDE y el mensaje explica el motivo.
+
+### F10. La instalación normal desde cero fallaba: `page_manifest` moría bajo `pipefail`
+
+**Síntoma**: en un clon limpio, `./setup.sh --dest <dir>` (sin `--tar`) abortaba de inmediato con `Fallo al resolver la URL estable`, aunque la misma resolución funcionaba a mano desde el lanzador.
+
+**Causa**: `page_manifest` resuelve la fila Linux de la página oficial con `sed ... | awk`, y el `awk` hacía `exit` al encontrar la fila. Bajo `set -o pipefail` (que usa `setup.sh`, pero no el lanzador) el `sed` moría con SIGPIPE (rc 141), la tubería completa devolvía error y la función retornaba 1. Los tests herméticos no lo veían porque no ejercitaban la función dentro de un contexto `pipefail` con una página real.
+
+**Solución**: el `awk` ya no corta la entrada: acumula la fila encontrada con `found = 1` y sigue consumiendo hasta el final; además todos los `| head -n 1` de `src/lib-portable.sh` pasaron a `sed -n '1p'` (8 casos), que termina sin cerrar el pipe antes de tiempo.
+
+**Cobertura**: `whitebox_content.test.sh` — `setup.sh` corre con `pipefail`, `lib-portable` no contiene `| head -n`, y `page_manifest` devuelve el sha256 de la fila correcta ejecutada bajo `pipefail`. Verificado además con una instalación real completa (descarga del IDE oficial, sha256 del sitio y arranque del IDE).
+
 ## Registro automático del bot de validación
 
 <!-- bot:inicio -->

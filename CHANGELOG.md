@@ -1,6 +1,16 @@
 # Changelog
 
-Versión actual: `0.3.0` (ver `VERSION`).
+Versión actual: `0.3.1` (ver `VERSION`).
+
+## 2026-11-01 — v0.3.1 (requisitos claros y aviso temprano de dependencias)
+
+- **`install-emulator.sh`**: valida `unzip` (y `curl`) **antes** de descargar las cmdline-tools. Antes bajaba los ~150 MB y recién al final avisaba que faltaba `unzip`. El mensaje además indica cómo instalarla o usar `--sdkmanager`.
+- **`setup.sh` verifica el sha256 también en la primera instalación**: cuando resuelve la versión estable, toma el sha256 de la página oficial y compara el tar descargado antes de extraer; con `--tar` propio se puede fijar con `PORTABLE_IDE_SHA256`. Antes solo el update verificaba el checksum. Elimina además una `stable_url` duplicada que ya vivía en `lib-portable.sh`.
+- **README reescrito para alguien que llega de cero**: tabla de requisitos con el comando para comprobarlos, espacio en disco, pasos de instalación, **cómo verificar que quedó bien**, uso diario (abrir un proyecto, atajo `~/bin/studio`, `PORTABLE_NO_UPDATE=1`) y problemas frecuentes.
+- **Corregido un fallo que rompía la instalación normal**: `setup.sh` abortaba con `Fallo al resolver la URL estable` porque la resolución de la versión moría bajo `set -o pipefail`. El `awk` que busca la fila Linux de la página ya no corta la entrada y los `| head -n 1` pasaron a `sed -n '1p'`. Detectado al correr una instalación real desde cero, no por los tests herméticos.
+- **Pruebas**: `blackbox_install_emulator.test.sh` 19→22 (sin `unzip` falla con código 1, el mensaje nombra la dependencia y no se invoca `curl`); `blackbox_setup.test.sh` 26→31 (sha256 correcto instala, sha256 incorrecto falla y no extrae); `whitebox_content.test.sh` 27→30 (regresión de `pipefail` en la resolución). Total **132→143**.
+- **Docs**: `01-diseno`, `02-pruebas` y `03-entorno` actualizados al conteo 143; `04-fallos` registra F8 (descarga inútil antes del aviso), F9 (instalación inicial sin verificar checksum) y F10 (resolución rota bajo `pipefail`).
+- Verificación manual del flujo completo sobre un clon limpio: instalación con tar local, arranque del lanzador, desinstalación y resolución real de la versión estable (`2026.2.2.8`, sha256 extraído de la página oficial).
 
 ## 2026-11-01 — v0.3.0 (instalador de emulador + suite ampliada)
 
