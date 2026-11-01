@@ -92,6 +92,32 @@ bash "$emulator_script" --dest "$FAKE_DEST" --sdkmanager "$TMP_ROOT/no-such-sdkm
     >"$TMP_ROOT/badskm.log" 2>&1
 assert_eq "$?" "1" "install-emulator.sh con --sdkmanager inexistente falla con código 1"
 
+# 8. Sin unzip avisa antes de descargar (no baja los ~150 MB de cmdline-tools)
+NO_UNZIP_BIN="$TMP_ROOT/bin-sin-unzip"
+mkdir -p "$NO_UNZIP_BIN"
+for t in bash sh readlink mkdir find grep sed awk cat sort head tail cut tr wc uname; do
+    p="$(command -v "$t" 2>/dev/null)" && ln -sf "$p" "$NO_UNZIP_BIN/$t"
+done
+cat > "$NO_UNZIP_BIN/curl" <<EOF
+#!/usr/bin/env bash
+touch "$TMP_ROOT/curl-invocado"
+exit 1
+EOF
+chmod +x "$NO_UNZIP_BIN/curl"
+
+DEST_SIN_UNZIP="$TMP_ROOT/dest-sin-unzip"
+mkdir -p "$DEST_SIN_UNZIP/android-studio/bin" "$DEST_SIN_UNZIP/sdk"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$DEST_SIN_UNZIP/android-studio/bin/studio"
+chmod +x "$DEST_SIN_UNZIP/android-studio/bin/studio"
+
+PATH="$NO_UNZIP_BIN" bash "$emulator_script" --dest "$DEST_SIN_UNZIP" \
+    >"$TMP_ROOT/sin-unzip.log" 2>&1
+assert_eq "$?" "1" "sin unzip falla con código 1"
+assert_true "grep -q 'unzip' '$TMP_ROOT/sin-unzip.log'" \
+    "sin unzip el mensaje nombra la dependencia que falta"
+assert_true "[ ! -f '$TMP_ROOT/curl-invocado' ]" \
+    "sin unzip no descarga cmdline-tools antes de avisar"
+
 if summarize; then
     exit 0
 else

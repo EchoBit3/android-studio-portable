@@ -112,6 +112,7 @@ cmdline_tools_url() {
 install_cmdline_tools() {
     local zip_file="$DEST/tmp/cmdline-tools.zip"
     local url got
+    command -v unzip >/dev/null 2>&1 || return 1
     url="$(cmdline_tools_url)"
     if [ ! -f "$zip_file" ]; then
         curl -fSL --progress-bar -o "$zip_file" "$url"
@@ -146,6 +147,10 @@ else
         printf 'No hay sdkmanager en %s; descargando cmdline-tools de Google...\n' "$SDK_ROOT" >&2
         command -v curl >/dev/null 2>&1 || {
             printf 'Falta curl para descargar cmdline-tools; pasá --sdkmanager <ruta>\n' >&2
+            exit 1
+        }
+        command -v unzip >/dev/null 2>&1 || {
+            printf 'Falta unzip para extraer cmdline-tools; instalalo (ej. sudo apt install unzip) o pasá --sdkmanager <ruta>\n' >&2
             exit 1
         }
         install_cmdline_tools || exit 1

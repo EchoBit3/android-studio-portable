@@ -89,6 +89,25 @@ bash "$setup_script" >"$TMP_ROOT/nodest.log" 2>&1
 assert_eq "$?" "1" "setup.sh sin --dest termina con código 1"
 assert_true "grep -q -- '--dest' '$TMP_ROOT/nodest.log'" "setup.sh sin --dest imprime la ayuda con --dest"
 
+# 9. Verifica el sha256 del IDE cuando se declara uno
+SHA_OK="$(sha256sum "$FAKE_TAR" | awk '{print $1}')"
+SHA_DEST="$TMP_ROOT/sha-dest"
+PORTABLE_IDE_SHA256="$SHA_OK" bash "$setup_script" --dest "$SHA_DEST" --tar "$FAKE_TAR" \
+    --home "$FAKE_HOME" --no-symlink >"$TMP_ROOT/sha-ok.log" 2>&1
+assert_eq "$?" "0" "con sha256 correcto la instalación termina con código 0"
+assert_true "grep -q 'sha256 del IDE verificado' '$TMP_ROOT/sha-ok.log'" \
+    "la instalación informa que verificó el sha256"
+
+SHA_MAL_DEST="$TMP_ROOT/sha-mal-dest"
+PORTABLE_IDE_SHA256="0000000000000000000000000000000000000000000000000000000000000000" \
+    bash "$setup_script" --dest "$SHA_MAL_DEST" --tar "$FAKE_TAR" \
+    --home "$FAKE_HOME" --no-symlink >"$TMP_ROOT/sha-mal.log" 2>&1
+assert_eq "$?" "1" "con sha256 incorrecto falla con código 1"
+assert_true "[ ! -d '$SHA_MAL_DEST/android-studio/bin' ]" \
+    "con sha256 incorrecto no se extrae el IDE"
+assert_true "grep -q 'sha256 del IDE no coincide' '$TMP_ROOT/sha-mal.log'" \
+    "el mensaje explica que el sha256 no coincide"
+
 if summarize; then
     exit 0
 else

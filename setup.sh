@@ -27,9 +27,13 @@ Opciones:
   --no-symlink     No crear $HOME/Android/Sdk -> <dest>/sdk
   --help           Muestra esta ayuda
 
-Requiere: tar, curl o wget. Se genera en <dest> la estructura autocontenida
-(sdk, avd, .gradle, .android, configs de JetBrains, temporales) más el
-lanzador studio-portable.sh.
+Variable de entorno:
+  PORTABLE_IDE_SHA256  sha256 esperado del tar.gz. Si usás --tar con un
+                       archivo propio, es la única forma de verificarlo.
+
+Requiere: tar, curl o wget, sha256sum. Se genera en <dest> la estructura
+autocontenida (sdk, avd, .gradle, .android, configs de JetBrains, temporales)
+más el lanzador studio-portable.sh.
 EOF
 }
 
@@ -78,28 +82,30 @@ fetch_tar() {
     fi
 }
 
-# stable_url: resuelve la URL del tar.gz estable oficial vigente
-stable_url() {
-    local page
-    page="$(curl -fsSL -A 'Mozilla/5.0' 'https://developer.android.com/studio')" || return 1
-    printf '%s' "$page" | grep -oE \
-        'https://(dl\.google\.com|redirector\.gvt1\.com|edgedl\.me\.gvt1\.com)[^" ]*ide-zips/[0-9.]+/android-studio[^" ]*-linux\.tar\.gz' \
-        | head -n 1
-}
-
 extract_studio() {
     if [ -x "$DEST/android-studio/bin/studio" ] || [ -x "$DEST/android-studio/bin/studio.sh" ]; then
         return
     fi
     local tmp_tar="$DEST/android-studio.tar.gz"
+    local expected_sha="${PORTABLE_IDE_SHA256:-}" got
     if [ -n "${TAR_SRC:-}" ]; then
         fetch_tar "$TAR_SRC"
     elif command -v curl >/dev/null 2>&1; then
-        local url
-        url="$(stable_url)" || {
+        local page manifest url
+        page="$(curl -fsSL --max-time "${PORTABLE_META_TIMEOUT:-30}" -A 'Mozilla/5.0' \
+            'https://developer.android.com/studio')" || {
             printf 'Fallo al resolver la URL estable; usá --tar <ruta|url>\n' >&2
             exit 1
         }
+        manifest="$(page_manifest "$page")" || manifest=""
+        url="${manifest%% *}"
+        [ -n "$url" ] || {
+            printf 'Fallo al resolver la URL estable; usá --tar <ruta|url>\n' >&2
+            exit 1
+        }
+        if [ -z "$expected_sha" ] && [ "$manifest" != "$url" ]; then
+            expected_sha="${manifest#* }"
+        fi
         curl -L --fail --progress-bar -o "$tmp_tar" "$url" || {
             printf 'Fallo la descarga de %s\n' "$url" >&2
             exit 1
@@ -107,6 +113,23 @@ extract_studio() {
     else
         printf 'Falta --tar <ruta|url> y no hay curl para resolver la estable\n' >&2
         exit 1
+    fi
+    if [ -n "$expected_sha" ]; then
+        if ! command -v sha256sum >/dev/null 2>&1; then
+            printf 'Falta sha256sum para verificar el IDE; instalalo o usá --tar sin verificación\n' >&2
+            rm -f "$tmp_tar"
+            exit 1
+        fi
+        got="$(sha256sum "$tmp_tar" | awk '{print $1}')"
+        if [ "$got" != "$expected_sha" ]; then
+            printf 'El sha256 del IDE no coincide (esperado %s, obtenido %s); se descarta la descarga\n' \
+                "$expected_sha" "$got" >&2
+            rm -f "$tmp_tar"
+            exit 1
+        fi
+        printf 'sha256 del IDE verificado\n'
+    else
+        printf 'Aviso: no se pudo verificar el sha256 del IDE; definí PORTABLE_IDE_SHA256 o usá --tar\n' >&2
     fi
     # Rechaza entradas con rutas absolutas o saltos de directorio antes de extraer
     if tar -tzf "$tmp_tar" | grep -qE '(^/|(^|/)\.\.(/|$))'; then
