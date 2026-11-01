@@ -35,7 +35,7 @@ stable_url() {
     page="$(curl -fsSL --max-time "$PORTABLE_META_TIMEOUT" -A 'Mozilla/5.0' 'https://developer.android.com/studio')" || return 1
     printf '%s' "$page" | grep -oE \
         'https://(dl\.google\.com|redirector\.gvt1\.com|edgedl\.me\.gvt1\.com)[^" ]*ide-zips/[0-9.]+/android-studio[^" ]*-linux\.tar\.gz' \
-        | head -n 1 || return 1
+        | sed -n '1p' || return 1
 }
 
 # page_manifest <html>: extrae "url sha256" de la fila Linux en la página oficial
@@ -43,19 +43,19 @@ page_manifest() {
     local page="$1"
     local url base row sha
     url="$(printf '%s' "$page" | grep -oE \
-        'https://[^" ]*ide-zips/[0-9.]+/android-studio[^" ]*-linux\.tar\.gz' | head -n 1)" || return 1
+        'https://[^" ]*ide-zips/[0-9.]+/android-studio[^" ]*-linux\.tar\.gz' | sed -n '1p')" || return 1
     [ -n "$url" ] || return 1
     base="$(basename "$url")"
     row="$(printf '%s' "$page" | sed 's/></>\n</g' | awk -v base="$base" '
         /^[[:space:]]*<tr/ { row = $0 }
         row != "" && !/^[[:space:]]*<tr/ { row = row $0 }
         /^[[:space:]]*<\/tr>/ {
-            if (index(row, base) > 0) { print row; exit }
+            if (!found && index(row, base) > 0) { print row; found = 1 }
             row = ""
         }
     ')" || return 1
     [ -n "$row" ] || return 1
-    sha="$(printf '%s' "$row" | grep -oE '[a-f0-9]{64}' | head -n 1)" || return 1
+    sha="$(printf '%s' "$row" | grep -oE '[a-f0-9]{64}' | sed -n '1p')" || return 1
     [ -n "$sha" ] || return 1
     printf '%s %s\n' "$url" "$sha"
 }
@@ -74,9 +74,9 @@ repo_manifest() {
         return 1
     fi
     [ -n "$raw" ] || return 1
-    url="$(printf '%s' "$raw" | sed -n 's/.*"url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)" || return 1
-    sha="$(printf '%s' "$raw" | sed -n 's/.*"sha256"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)" || return 1
-    ver="$(printf '%s' "$raw" | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)" || return 1
+    url="$(printf '%s' "$raw" | sed -n 's/.*"url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p')" || return 1
+    sha="$(printf '%s' "$raw" | sed -n 's/.*"sha256"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p')" || return 1
+    ver="$(printf '%s' "$raw" | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | sed -n '1p')" || return 1
     [ -n "$url" ] && [ -n "$sha" ] && [ -n "$ver" ] || return 1
     printf '%s %s %s\n' "$url" "$sha" "$ver"
 }
@@ -84,7 +84,7 @@ repo_manifest() {
 # version_from_url <url>: extrae la versión de la ruta ide-zips/<version>/
 version_from_url() {
     local url="$1"
-    printf '%s' "$url" | grep -oE 'ide-zips/[0-9.]+' | head -n 1 | sed 's#ide-zips/##' || return 1
+    printf '%s' "$url" | grep -oE 'ide-zips/[0-9.]+' | sed -n '1p' | sed 's#ide-zips/##' || return 1
 }
 
 # version_gt <a> <b>: exit 0 si a > b, comparando campos numéricos por puntos
@@ -112,7 +112,7 @@ installed_version() {
         v="$(cat "$base/.studio-version")"
     elif [ -f "$base/android-studio/product-info.json" ]; then
         v="$(sed -n 's/.*"dataDirectoryName"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-            "$base/android-studio/product-info.json" | head -n 1)" || return 1
+            "$base/android-studio/product-info.json" | sed -n '1p')" || return 1
         v="${v#AndroidStudio}"
     fi
     printf '%s' "$v"

@@ -110,6 +110,22 @@ assert_true "grep -q 'dl.google.com/android/repository/commandlinetools' '$REPO_
 assert_true "grep -q 'CMDTOOLS_SHA' '$REPO_DIR/install-emulator.sh'" \
     "install-emulator permite fijar sha256 de cmdline-tools via env"
 
+# 9. lib-portable tolera set -o pipefail (setup.sh lo activa) y no corta pipes con head
+assert_true "grep -q 'pipefail' '$setup_script'" \
+    "setup.sh corre con pipefail (contexto donde fallaba la resolución)"
+assert_true "[ -z \"\$(grep -n '| head -n' '$REPO_DIR/src/lib-portable.sh')\" ]" \
+    "lib-portable no usa '| head -n' (SIGPIPE bajo pipefail)"
+
+# 10. page_manifest devuelve url+sha256 bajo pipefail con una fila real de la página
+cat > "$TMP_ROOT/manifest.html" <<'EOF'
+<tr><td><a href="https://dl.google.com/android/studio/ide-zips/2026.2.2.8/android-studio-rabbit2-linux.tar.gz">linux</a></td><td>b47fdcc0703019618a7afd5ad1822cafc5de66bed984640be2977a0fdb538304</td></tr>
+<tr><td><a href="https://dl.google.com/android/studio/ide-zips/2026.2.1.9/android-studio-otra-linux.tar.gz">linux</a></td><td>1111111111111111111111111111111111111111111111111111111111111111</td></tr>
+EOF
+manifest_out="$(bash -c 'set -euo pipefail; source "$1"; page_manifest "$(cat "$2")"' _ \
+    "$REPO_DIR/src/lib-portable.sh" "$TMP_ROOT/manifest.html" 2>/dev/null)" || manifest_out=""
+assert_eq "${manifest_out#* }" "b47fdcc0703019618a7afd5ad1822cafc5de66bed984640be2977a0fdb538304" \
+    "page_manifest devuelve el sha256 de la fila correcta bajo pipefail"
+
 HOME="$SAVED_HOME"
 
 if summarize; then
