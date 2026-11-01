@@ -115,6 +115,63 @@ assert_eq "$MANIFEST_OUT" "https://edgedl.me.gvt1.com/android/studio/ide-zips/20
 PORTABLE_NO_UPDATE=1 check_update "$FAKE_BASE"
 assert_eq "$?" "0" "con PORTABLE_NO_UPDATE=1 check_update retorna 0 sin red"
 
+# 10. Actualizar y seguir siendo portable: tras el update, mover la instalación
+#     completa y comprobar que el lanzador la reubica y el IDE arranca igual.
+PORT_HOME="$TMP_ROOT/home-port"
+PORT_HOME2="$TMP_ROOT/home-port2"
+mkdir -p "$PORT_HOME" "$PORT_HOME2"
+
+# tar "instalado" (versión vieja) y tar "nuevo" que baja la actualización
+mk_tar() { # <dir> <version> <dataDir> <mensaje>
+    local d="$1"
+    mkdir -p "$d/android-studio/bin" "$d/android-studio/jbr/bin"
+    printf '#!/usr/bin/env bash\necho "%s"\n' "$4" > "$d/android-studio/bin/studio.sh"
+    printf '#!/usr/bin/env bash\nexit 0\n' > "$d/android-studio/jbr/bin/java"
+    printf '{"dataDirectoryName":"AndroidStudio%s"}\n' "$3" > "$d/android-studio/product-info.json"
+    chmod +x "$d/android-studio/bin/studio.sh" "$d/android-studio/jbr/bin/java"
+}
+
+mk_tar "$TMP_ROOT/viejo" "2026.1.4" "2026.1.4" "IDE VIEJO"
+tar -C "$TMP_ROOT/viejo" -czf "$TMP_ROOT/viejo.tar.gz" android-studio
+
+mkdir -p "$TMP_ROOT/dist-port/ide-zips/2026.2.9"
+mk_tar "$TMP_ROOT/nuevo-port" "2026.2.9" "2026.2.9" "IDE NUEVO"
+tar -C "$TMP_ROOT/nuevo-port" -czf \
+    "$TMP_ROOT/dist-port/ide-zips/2026.2.9/android-studio-xpro-linux.tar.gz" android-studio
+PORT_SHA="$(sha256sum "$TMP_ROOT/dist-port/ide-zips/2026.2.9/android-studio-xpro-linux.tar.gz" | awk '{print $1}')"
+
+PORT_DEST="$TMP_ROOT/portable-inst"
+HOME="$PORT_HOME" bash "$REPO_DIR/setup.sh" --dest "$PORT_DEST" --tar "$TMP_ROOT/viejo.tar.gz" \
+    >"$TMP_ROOT/port-setup.log" 2>&1
+assert_eq "$?" "0" "instalación base para la prueba de portabilidad"
+assert_eq "$(cat "$PORT_DEST/.studio-version" 2>/dev/null)" "2026.1.4" \
+    "la instalación base registra su versión"
+
+# manifiesto en caché (evita red): url file:// con la versión nueva
+mkdir -p "$PORT_DEST/.config"
+printf '%s %s %s %s\n' "$(date +%s)" \
+    "file://$TMP_ROOT/dist-port/ide-zips/2026.2.9/android-studio-xpro-linux.tar.gz" \
+    "$PORT_SHA" "2026.2.9" > "$PORT_DEST/.config/update-cache"
+
+UPDATE_OUT="$(HOME="$PORT_HOME" "$PORT_DEST/studio-portable.sh" 2>&1)"
+assert_eq "$UPDATE_OUT" "IDE NUEVO" "tras actualizar, el lanzador arranca el IDE nuevo"
+assert_eq "$(cat "$PORT_DEST/.studio-version")" "2026.2.9" "la actualización registra la versión nueva"
+assert_true "[ -d '$PORT_DEST/android-studio.prev' ]" \
+    "la actualización conserva la versión anterior para rollback"
+
+# mover la instalación completa (otra ruta, otro HOME) = prueba de portabilidad
+PORT_MOVIDO="$TMP_ROOT/otra-ruta/instalacion-movida"
+mkdir -p "$(dirname "$PORT_MOVIDO")"
+mv "$PORT_DEST" "$PORT_MOVIDO"
+MOVED_OUT="$(HOME="$PORT_HOME2" PORTABLE_NO_UPDATE=1 "$PORT_MOVIDO/studio-portable.sh" 2>&1)"
+assert_eq "$MOVED_OUT" "IDE NUEVO" "tras mover la instalación actualizada, el IDE sigue arrancando"
+assert_true "grep -q 'value=\"$PORT_MOVIDO/sdk\"' '$PORT_MOVIDO/AndroidStudioConfig/options/AndroidSdkPathStore.xml'" \
+    "el lanzador reescribe la ruta del SDK al mover la instalación"
+assert_eq "$(readlink "$PORT_HOME2/Android/Sdk")" "$PORT_MOVIDO/sdk" \
+    "el symlink del SDK apunta a la ruta nueva"
+assert_true "[ -d '$PORT_MOVIDO/.gradle' ] && [ -d '$PORT_MOVIDO/avd' ]" \
+    "la estructura portable (gradle, avd) sobrevive a la actualización y al traslado"
+
 if summarize; then
     exit 0
 else
